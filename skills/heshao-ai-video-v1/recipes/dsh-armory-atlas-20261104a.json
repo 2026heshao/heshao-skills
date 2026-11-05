@@ -1,0 +1,95 @@
+{
+  "version": 2,
+  "project": "dsh-armory-atlas",
+  "seed": "atlas-20261104a",
+  "created": "2026-11-04",
+  "format": "video-4x3",
+  "picks": {
+    "world": "atlas",
+    "hook": "countdown",
+    "transition": "eclipse-wipe",
+    "caption": "plate-header",
+    "sound": "celestial",
+    "rhythm": "rescue"
+  },
+  "fixed": {
+    "format": "4:3 1440x1080",
+    "kind": "video",
+    "fps": 30,
+    "durationTarget": 45,
+    "qa": [
+      "fact-table",
+      "originality-8-axis",
+      "pure-seek",
+      "stereo-peak",
+      "av-offset"
+    ]
+  },
+  "newAxes": [
+    "world",
+    "hook",
+    "transition",
+    "caption",
+    "sound",
+    "rhythm"
+  ],
+  "forcedAxes": [],
+  "compatibility": true,
+  "context": {
+    "base": null,
+    "vary": null,
+    "excludeWorlds": [],
+    "excludeHooks": [],
+    "historyWindow": 3,
+    "explore": 0,
+    "deckFingerprint": "2f57e06a064b",
+    "deckFingerprintNote": "2026-11-04 补记；picks 已按当前 decks 重新校验。"
+  },
+  "prompt": {
+    "image": "deep indigo night-sky observatory plate, brass meridian rings and etched magnitude ticks, fine constellation lines, one warm star, subtle nebula, cinematic rim light, no text, no logos. Palette bg:#05070f, surface:#0b1224, paper:#f2eee2, accent:#8fd8ff, warning:#ff7a4d, stamp:#d8a54a. Type NotoSerifSC 600/900/Geist/Geist Mono. Motifs: star chart, brass meridian ring, constellation line, magnitude label, aperture. Composition: leave deliberate negative space for a headline; no readable text, no logos, no letters.",
+    "video": "救援: 乱局 → 诊断 → 修复 → 恢复 → 落版. Motion: sky rotate, star ignition, constellation draw, aperture iris, eclipse wipe. Transition: 日食擦除. Captions: 左上图版题. Sound: 星图音. Hook pattern: [时间]，找到 [目标]。. Avoid the reference film's exact copy, shot order, durations, transition combination, caption animation, motifs and SFX arrangement.",
+    "cover": "3:4 star-atlas poster, one oversized brass aperture ring in lower half, a single bright star and constellation lines, deep indigo with warm brass, top negative space for headline. Hook: 倒计时. Hero motif: star chart. Brand block at bottom; keep key text in the top 75% and the right 120px clear. Render all text in HTML/SVG, not in the generated image.",
+    "negative": "reference film's exact copy, shot order, durations, light sweep, halftone wipe, flash white, center keyword sticker, metal title slam, riser/whoosh/shimmer, gibberish Chinese text, logos, watermarks"
+  },
+  "storyboard": [
+    {
+      "i": 1,
+      "name": "乱局",
+      "task": "展示失控现场",
+      "budget": 7
+    },
+    {
+      "i": 2,
+      "name": "诊断",
+      "task": "找到问题/零调用/缺口",
+      "budget": 8
+    },
+    {
+      "i": 3,
+      "name": "修复",
+      "task": "执行一个真实修复动作",
+      "budget": 10
+    },
+    {
+      "i": 4,
+      "name": "恢复",
+      "task": "前后对比/秩序回来",
+      "budget": 10
+    },
+    {
+      "i": 5,
+      "name": "落版",
+      "task": "价值句 + 命令",
+      "budget": 10
+    }
+  ],
+  "score": {
+    "hook": 0,
+    "thumbnail": 0,
+    "fact": 0,
+    "rhythm": 0,
+    "originality": 0,
+    "audio": 0
+  },
+  "notes": "实拍 6 幕：失联 6.72 / 星图 8.92 / 来路 5.42 / 暗星 7.53 / 牵引 10.09 / 落版 8.30，总 46.98s；配方给的是救援 5 幕骨架，实际把诊断/修复拆成 4 幕，以此 notes 为准。文案合同：星图是看法，不是功能；口播第一次出现用“比作”，中段交回账本，落版/封面加脚注。另有 dsh-armory-atlas-atlas-20261104a.json 为修复前重复命名产物，勿用。"
+}

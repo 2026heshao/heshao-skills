@@ -1,0 +1,48 @@
+{
+  "version": 2,
+  "cards": [
+    {
+      "id": "lower-left-label",
+      "name": "左下入库标签",
+      "description": "骨白标签 + 独立关键词块 + 条码，标签打印式揭示。",
+      "position": "lower-left",
+      "risk": "low"
+    },
+    {
+      "id": "margin-note",
+      "name": "页边注",
+      "description": "图纸/文档页边的细字注记，关键词用红笔圈出。",
+      "position": "margin",
+      "risk": "low"
+    },
+    {
+      "id": "ticket-strip",
+      "name": "票根/航班条",
+      "description": "窄条票根贴在画面下方，关键词像目的地代码。",
+      "position": "lower",
+      "risk": "low"
+    },
+    {
+      "id": "case-label",
+      "name": "卷宗标签",
+      "description": "档案标签贴在画面角落，关键词像索引号。",
+      "position": "corner",
+      "risk": "low"
+    },
+    {
+      "id": "plate-header",
+      "name": "左上图版题",
+      "description": "星图左上角的图版题：细黄铜线 + 衬线关键词 + 等宽索引，蚀刻式从左揭开。",
+      "position": "upper-left",
+      "risk": "low"
+    },
+    {
+      "id": "center-keyword-sticker",
+      "name": "中下关键词贴纸",
+      "description": "参考片的中下关键词贴纸 + 逐字点亮；仅用于对照，默认禁用。",
+      "position": "center",
+      "banned": true,
+      "risk": "high"
+    }
+  ]
+}

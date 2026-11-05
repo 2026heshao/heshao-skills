@@ -1,0 +1,120 @@
+{
+  "skill_name": "heshao-ai-video-v1",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "参考 D:\\work\\refs\\launch-film 里的产品和工程，给我的 DSH 插件做一支全新的 4:3 宣传片。先拆解参考片，再写原创文案、分镜和节奏表；不要复用它的句子、分镜顺序、转场、字幕动效和音效排列。先交付可交互网页高仿真预览，确认后再渲染 MP4。",
+      "expected_output": "先给参考拆解表（视觉/文案/节奏/转场/字幕/声音 + 可借/禁借），再给产品事实表、原创 10–15 句旁白、6 幕分镜与节奏表、9 轴差异化说明；然后构建 1440×1080 的 4:3 网页预览，含播放/进度/重播/全屏/倍速/字幕/音量/章节/分镜抽屉；renderAt(t) 可逐帧复现；未确认前不渲染 MP4。",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "我只有参考片的 MP4，没有工程文件。帮我按它的方法论做一支 45 秒左右的原创产品片，4:3，网页预览要能拖进度、切倍速、关字幕。文案和动画必须和它明显不同。",
+      "expected_output": "明确说明只有 MP4、没有工程与播放数据，拆解基于抽帧与听感并标注不确定项；输出方法层拆解与禁借清单；给出新的视觉世界、原创文案、分镜节奏表与差异化矩阵；交付 4:3 可交互预览与操作说明；不把参考片的句子/分镜/转场/音效排列搬过来；MP4 等确认后再渲染。",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "预览我看了，可以。按 1440×1080、30fps、H.264、AAC 192k 渲染成片，输出到 out/final，渲染完帮我验一遍画幅、帧数、音频削顶和音画同步。",
+      "expected_output": "确认参数后逐帧渲染；检查 1440×1080/30fps/H.264/1348 帧/44.93s；解码立体声逐声道检查 0 削顶与峰值；检查音频时长覆盖、音画包络偏移 ≤1 帧；生成接触表、SHA-256 与交付说明；若发现 AAC 过冲或 QA 假阳性，说明并修正。",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "我不想每次都抽卡随机。用你的受控随机系统给 dsh-armory 抽下一条宣传片：不要用上一支的 world，最多换两个轴，给我一份可复现的配方和下一步生成用的 prompt。",
+      "expected_output": "运行 scripts/pick.mjs --base recipes/dsh-armory-depot-20261103.json --vary ...，输出 recipe：seed、picks（world/hook/transition/caption/sound/rhythm）、newAxes、forcedAxes、compatibility、prompt、storyboard；world 不与上一支重复；最多两个 intended 新轴；解释 --explore 与权重；不直接开始渲染。",
+      "files": [
+        "recipes/dsh-armory-depot-20261103.json",
+        "decks/worlds.json",
+        "compatibility.json"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "用同一个 seed 再跑一遍，结果必须一样；然后基于这份配方只换 hook 和 transition，其他轴锁定。跑完校验兼容性。",
+      "expected_output": "同 seed 两次 picks 完全一致；第二次用 --base --vary hook,transition，newAxes 只有两项，其余 picks 与 base 相同；不兼容时自动重抽并写 forcedAxes；node scripts/pick.mjs --validate 返回 PASS。",
+      "files": [
+        "scripts/pick.mjs"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "给牌组加一个新的视觉世界，要求能和现有的转场/字幕/声音组合，并把它接到抽牌器里；不要破坏原有配方。",
+      "expected_output": "在 decks/worlds.json 加卡；在 compatibility.json 为它补 hooks/transitions/captions/sounds/rhythms；在 weights.json 给初始权重；用 --lock world=新id 或 --allow-repeat 抽一份测试配方并 --validate；原有 recipes 不变；说明一次只加一张新卡。",
+      "files": [
+        "decks/worlds.json",
+        "compatibility.json",
+        "weights.json",
+        "scripts/pick.mjs"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "成片已经交付。用户说：整体还行，7 分，钩子有点慢，声音不错，这次别改权重。请按这套 skill 的交付后流程处理。",
+      "expected_output": "不重复渲染；用 3+1 问法补问最想改的一幕/是否可复用；按 7 分记 conditional、promotion none；用 scripts/feedback.mjs --new 建档并填“适用条件/下次怎么复用”，再 --validate/--index；不改 weights/decks/SKILL；尊重“别改权重”并写入 userQuote 或 changes；不把“还行”当成功。",
+      "files": [
+        "references/feedback-loop.md",
+        "scripts/feedback.mjs",
+        "experiences/INDEX.md"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "用户对成片打 9 分，说“以后都按这个来”，尤其喜欢星图比喻和没有底拍的声音。请把这次经验沉淀下来。",
+      "expected_output": "记 success + candidate，而不是直接改规则；先写 experiences/ 条目，列出可复用清单（比喻合同、无底拍声音），再给出拟改动的 diff；说明“以后都按这个来”属于明确指令，但仍需用户确认 diff；确认后 bump 版本、写 CHANGELOG、把 promotion 改为 promoted；单次不改权重，除非另有 3 个配方回测。",
+      "files": [
+        "references/feedback-loop.md",
+        "scripts/feedback.mjs",
+        "experiences/INDEX.md"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "预览我认可了，开始渲染。这台机器的 ffmpeg 不在 PATH 上，浏览器也可能不在。请先确认能不能跑，再只截第 20 到 21 秒的帧给我看构图，并证明你的截图是确定性的。",
+      "expected_output": "先跑 node scripts/render.mjs --preflight 而不是直接开渲；探测顺序 PROMO_FFMPEG/PROMO_EDGE → PATH → 剪映自带目录，缺件时给出可执行的补法（--ffmpeg/--edge 或环境变量），不要跑到几百帧后才崩。用 --root <影片工程> 定位 preview.html，--frames-only --from 20 --to 21 --keep 只截这一段。确定性证明：同一帧号在两次独立浏览器会话中截出的 PNG 必须 sha256 相同；不能只声称“应该一致”。只杀自己启动的浏览器进程。",
+      "files": [
+        "scripts/render.mjs",
+        "references/audio-and-render.md"
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "整片渲染出来，然后按你这套 skill 的成片 QA 逐项验一遍，特别是有没有削顶和音画对不对得上。",
+      "expected_output": "分阶段跑：--frames-only → --audio-only（先探真峰值再折算统一母线 trim）→ --encode-only；不用 -shortest，改 apad + -t 帧数/fps；无 NVENC 自动降级 libx264 并说明。音频不进浏览器，SFX 按 ceil(t*fps)/fps 量化。然后 python scripts/qa_mp4.py --mp4 ... --meta ... --audio-check ...，逐声道（-ac 2）查削顶而不是单声道下混，检查画幅/帧率/编码/容器时长/音画包络偏移 ≤1 帧/接触表/SHA-256；报出实际数字（帧数、峰值 dBFS、偏移 ms），不写“应该没问题”。渲染后清 PNG 帧目录，保留 meta/audio-check/接触表。",
+      "files": [
+        "scripts/render.mjs",
+        "scripts/qa_mp4.py",
+        "references/audio-and-render.md"
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "旁白我改了三句，重新对一下时间轴，另外这次要发抖音，需要能外挂的字幕文件。",
+      "expected_output": "不手改任何秒数：跑 scripts/build_voice.py（口播稿 json → 逐句 TTS + 润音链 → 样本级 voice_timeline_<slug>.json），只改动的那几句重合成、其余用 --from-cache 以免时间轴漂移；再跑 scripts/build_timeline.py --spec ... --voice-timeline ...，产出 timeline.js 与 narration.vtt/.srt（整句口播，给平台外挂）和 captions.vtt/.srt（上屏关键词，不逐句复读）。交付前说明字幕时刻已按帧边界量化、与渲染同一口径，并跑一次相同输入确认产物逐字节一致。",
+      "files": [
+        "scripts/build_voice.py",
+        "scripts/build_timeline.py",
+        "references/preview-contract.md"
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "给音效库加一种新材质“磁吸锁”，别把上一支片子用过的 relay/stamp 音色改掉。",
+      "expected_output": "在 scripts/build_sfx.py 的 MATERIALS 追加材质函数并 --list 确认；说明每个材质有独立派生 seed（blake2s(seed, name)），因此新增或调整生成顺序都不会改动既有材质的字节 —— 这是修掉“共用一条全局 RNG 流导致顺序耦合”之后的行为。验证方式：改动前后分别生成，逐字节比对原有 13 个 wav 必须完全一致；同时报写盘峰值（应远低于 0 dBFS、0 削顶样本）。不复用参考片的音效名单与卡点排列，banned 材质（riser/whoosh/shimmer）不得加入。",
+      "files": [
+        "scripts/build_sfx.py",
+        "references/audio-and-render.md"
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "成片已交付，QA 也报了，用户没有回复。助手准备直接结束。这样算完成吗？",
+      "expected_output": "不算完整交付：按 Phase 8 运行 node scripts/feedback.mjs --prompt 发出 3+1 回访，不阻塞；用户不回则标 unrated（只留元数据），下次开工不追问；不能把沉默当好评，不写 success，不改权重/牌组。",
+      "files": [
+        "references/feedback-loop.md",
+        "scripts/feedback.mjs",
+        "experiences/INDEX.md"
+      ]
+    }
+  ]
+}

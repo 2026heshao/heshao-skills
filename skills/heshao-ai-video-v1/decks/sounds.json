@@ -1,0 +1,42 @@
+{
+  "version": 2,
+  "cards": [
+    {
+      "id": "mechanical",
+      "name": "机械音",
+      "description": "继电器、印章、伺服、开关、低频 thump。",
+      "risk": "low"
+    },
+    {
+      "id": "paper",
+      "name": "纸张音",
+      "description": "翻纸、打字机、胶带、绳扣、印章。",
+      "risk": "low"
+    },
+    {
+      "id": "electronic",
+      "name": "电子音",
+      "description": "扫码、蜂鸣、雷达脉冲、继电器、低频。",
+      "risk": "low"
+    },
+    {
+      "id": "field",
+      "name": "现场音",
+      "description": "帆布、拉链、扣具、胶带、脚步。",
+      "risk": "low"
+    },
+    {
+      "id": "celestial",
+      "name": "星图音",
+      "description": "玻璃泛音、黄铜轻击、气声、低频星体脉冲；不用 riser/whoosh。",
+      "risk": "low"
+    },
+    {
+      "id": "reference-stinger",
+      "name": "参考片转场音",
+      "description": "riser / whoosh / shimmer 组合；仅用于对照，默认禁用。",
+      "banned": true,
+      "risk": "high"
+    }
+  ]
+}

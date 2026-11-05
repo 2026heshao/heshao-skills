@@ -1,0 +1,55 @@
+{
+  "version": 2,
+  "cards": [
+    {
+      "id": "question",
+      "name": "提问",
+      "template": "给 [对象] 装了这么多，你还记得几件？",
+      "note": "第二人称提问，直接戳记忆/失控。",
+      "risk": "low"
+    },
+    {
+      "id": "loss",
+      "name": "损失",
+      "template": "有些 [对象]，[动作] 完就再没被叫过。",
+      "note": "把问题具体化为一个损失。",
+      "risk": "low"
+    },
+    {
+      "id": "contrast",
+      "name": "反差",
+      "template": "[N] 个 [入口]，现在只剩 [1] 个入口。",
+      "note": "入口/流程的数量反差。",
+      "risk": "low"
+    },
+    {
+      "id": "countdown",
+      "name": "倒计时",
+      "template": "[时间]，找到 [目标]。",
+      "note": "用时间压力制造动作。",
+      "risk": "medium"
+    },
+    {
+      "id": "object",
+      "name": "物件",
+      "template": "一件 [物件] 穿过画面，上面写着 [信息]。",
+      "note": "用强符号代替抽象叙述。",
+      "risk": "low"
+    },
+    {
+      "id": "confession",
+      "name": "自白",
+      "template": "我以前靠 [旧方法] 管理 [对象]。",
+      "note": "第一人称，适合真实故事。",
+      "risk": "medium"
+    },
+    {
+      "id": "four-places",
+      "name": "四个地方",
+      "template": "装技能、找 MCP、约专家、淘插件，以前要开四个地方。",
+      "note": "参考片原钩子；仅用于对照，默认禁用。",
+      "banned": true,
+      "risk": "high"
+    }
+  ]
+}

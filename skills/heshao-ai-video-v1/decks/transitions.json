@@ -1,0 +1,71 @@
+{
+  "version": 2,
+  "cards": [
+    {
+      "id": "mechanical-shutter",
+      "name": "机械快门",
+      "description": "9 条横向叶片快速闭合/开启，配闸门声。",
+      "family": "mechanical",
+      "risk": "low"
+    },
+    {
+      "id": "paper-fold",
+      "name": "折纸/卷纸",
+      "description": "纸面沿折线合上或卷起，露出下一幕。",
+      "family": "paper",
+      "risk": "low"
+    },
+    {
+      "id": "scan-wipe",
+      "name": "扫描擦除",
+      "description": "扫描线/雷达带横向扫过，旧画面被新画面替换。",
+      "family": "electronic",
+      "risk": "low"
+    },
+    {
+      "id": "drawer-slam",
+      "name": "抽屉/合卷",
+      "description": "抽屉推入或卷宗合上，硬切到下一幕。",
+      "family": "mechanical",
+      "risk": "low"
+    },
+    {
+      "id": "hard-cut",
+      "name": "纯硬切",
+      "description": "无花哨转场，靠声音与构图咬合。",
+      "family": "neutral",
+      "risk": "low"
+    },
+    {
+      "id": "eclipse-wipe",
+      "name": "日食擦除",
+      "description": "一枚带日冕边的暗圆从画面一侧扫过，旧幕被食尽，露出下一幕。",
+      "family": "celestial",
+      "risk": "low"
+    },
+    {
+      "id": "light-sweep",
+      "name": "暖光扫",
+      "description": "参考片的暖光横扫转场；仅用于对照，默认禁用。",
+      "family": "light",
+      "banned": true,
+      "risk": "high"
+    },
+    {
+      "id": "halftone-wipe",
+      "name": "半调擦除",
+      "description": "参考片的半调网点擦除；仅用于对照，默认禁用。",
+      "family": "print",
+      "banned": true,
+      "risk": "high"
+    },
+    {
+      "id": "flash-white",
+      "name": "闪白",
+      "description": "参考片的闪白转场；仅用于对照，默认禁用。",
+      "family": "light",
+      "banned": true,
+      "risk": "high"
+    }
+  ]
+}

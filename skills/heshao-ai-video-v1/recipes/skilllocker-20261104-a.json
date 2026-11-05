@@ -1,0 +1,110 @@
+{
+  "version": 2,
+  "project": "skilllocker",
+  "seed": "20261104-a",
+  "created": "2026-11-04",
+  "format": "video-4x3",
+  "picks": {
+    "world": "lab",
+    "hook": "confession",
+    "transition": "hard-cut",
+    "caption": "lower-left-label",
+    "sound": "mechanical",
+    "rhythm": "day"
+  },
+  "fixed": {
+    "format": "4:3 1440x1080",
+    "kind": "video",
+    "fps": 30,
+    "durationTarget": 45,
+    "qa": [
+      "fact-table",
+      "originality-8-axis",
+      "pure-seek",
+      "stereo-peak",
+      "av-offset"
+    ]
+  },
+  "newAxes": [
+    "world",
+    "hook",
+    "transition",
+    "caption",
+    "sound",
+    "rhythm"
+  ],
+  "forcedAxes": [],
+  "compatibility": true,
+  "context": {
+    "base": null,
+    "vary": null,
+    "excludeWorlds": [
+      "atlas",
+      "tower",
+      "depot"
+    ],
+    "excludeHooks": [
+      "countdown",
+      "contrast",
+      "question"
+    ],
+    "locked": {},
+    "historyWindow": 3,
+    "explore": 0.3,
+    "strictSeed": false,
+    "deckFingerprint": "2f57e06a064b",
+    "argv": [
+      "--project",
+      "skilllocker",
+      "--seed",
+      "20261104-a"
+    ]
+  },
+  "prompt": {
+    "image": "clean cool-white laboratory bench, glass vials, measurement grid, labels, graphite tools, soft directional light, no text. Palette bg:#e9edf0, surface:#cfd7dc, paper:#ffffff, accent:#1f6bff, warning:#ffce3a, stamp:#e5482f. Type NotoSansSC 700/900/Geist/Geist Mono. Motifs: lab bench, vial, label, clamp, measure grid. Composition: leave deliberate negative space for a headline; no readable text, no logos, no letters.",
+    "video": "一天: 早上 → 中午 → 傍晚 → 夜里 → 落版. Motion: drip, liquid line, clamp, label stick, measure. Transition: 纯硬切. Captions: 左下入库标签. Sound: 机械音. Hook pattern: 我以前靠 [旧方法] 管理 [对象]。. Avoid the reference film's exact copy, shot order, durations, transition combination, caption animation, motifs and SFX arrangement.",
+    "cover": "3:4 lab poster, one oversized sample vial or labeled tray, cool white and graphite, one blue accent, top space for headline. Hook: 自白. Hero motif: lab bench. Brand block at bottom; keep key text in the top 75% and the right 120px clear. Render all text in HTML/SVG, not in the generated image.",
+    "negative": "reference film's exact copy, shot order, durations, light sweep, halftone wipe, flash white, center keyword sticker, metal title slam, riser/whoosh/shimmer, gibberish Chinese text, logos, watermarks"
+  },
+  "storyboard": [
+    {
+      "i": 1,
+      "name": "早上",
+      "task": "开始工作时的痛点",
+      "budget": 9
+    },
+    {
+      "i": 2,
+      "name": "中午",
+      "task": "第一次使用/发现",
+      "budget": 9
+    },
+    {
+      "i": 3,
+      "name": "傍晚",
+      "task": "高频动作/复用",
+      "budget": 9
+    },
+    {
+      "i": 4,
+      "name": "夜里",
+      "task": "复盘/账本/清理",
+      "budget": 9
+    },
+    {
+      "i": 5,
+      "name": "落版",
+      "task": "价值句 + 命令",
+      "budget": 9
+    }
+  ],
+  "score": {
+    "hook": 0,
+    "thumbnail": 0,
+    "fact": 0,
+    "rhythm": 0,
+    "originality": 0,
+    "audio": 0
+  },
+  "notes": ""
+}

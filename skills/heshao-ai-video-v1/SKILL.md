@@ -1,0 +1,385 @@
+---
+name: heshao-ai-video-v1
+version: 2.1.0
+description: 参考片驱动的原创产品宣传片工作流，v2 内置受控随机牌组与 seed 配方：拆解参考片的钩子、文案结构、节奏、镜头、字幕与音效方法，重新设计视觉世界与分镜，产出原创文案、4:3 网页高仿真预览、旁白与自产音效，再逐帧渲染 MP4 并做音画 QA，交付后主动收集反馈并分层沉淀经验。只要用户要做产品宣传片、参考某支视频做新片、要 4:3 网页预览 / 分镜节奏表 / 可交互播放器，或明确说“不想每次抽卡随机 / 要系统性产出 / 在可控范围内变化”，就使用本 skill。Use for product promo videos, reference-driven original films, 4:3 HTML previews, storyboard/rhythm tables, TTS/SFX, frame rendering and A/V QA, and controlled-randomness recipe decks.
+---
+
+# Heshao AI Video v2
+
+这是一套**参考片驱动的原创宣传片工作流**，不是一套固定皮肤，也不是“把参考片换个颜色”。
+
+核心立场：
+
+> **借方法，不借表达。** 可以借“强钩子、快节奏、高信息密度、强卡点、关键词字幕、动作音效”；不可以借原句、分镜顺序、幕长组合、转场组合、字幕动效、视觉母题和音效排列。
+
+默认交付：**4:3 网页高仿真预览** → 用户确认 → **1440×1080 / 30fps MP4**。用户没有明确确认预览前，不渲染 MP4。
+
+**交付完成 = 成片/封面 + QA 数字 + 3+1 回访已发出。** 只发文件不算收尾；回访不阻塞交付，用户不评就记 `unrated`。
+
+默认依赖：Node 22+、Python 3.12+、ffmpeg（`h264_nvenc` 或 `libx264`）、Edge/Chrome、numpy、scipy、Pillow；TTS 用 `edge-tts`（在线服务）。没有 NVENC 时 `render.mjs` 自动降级 `libx264 -crf 18`。
+
+**开工前先探测工具链**，不要跑到一半才崩：
+
+```bash
+node scripts/render.mjs --preflight    # 查浏览器 / ffmpeg / 页面，缺什么直接说清楚
+```
+
+ffmpeg 与 Edge 常常不在 PATH 上（例如只有剪映自带的 ffmpeg）。探测顺序：`PROMO_FFMPEG` / `PROMO_EDGE` 环境变量 → PATH → 常见安装目录（含剪映 `AppData/Local/JianyingPro/apps/*/ffmpeg.exe`，取版本最新的）；也可以用 `--ffmpeg` / `--edge` 显式指定。`qa_mp4.py` 与 `build_voice.py` 用同一套探测。
+
+---
+
+## 0. v2：先抽配方，再开工
+
+v2 把“每次抽卡”改成**受控随机**：
+
+- **L0 宪法**：产品事实、品牌、画幅、时长、QA、禁用表达——永不随机。
+- **L1 牌组**：world / hook / transition / caption / sound / rhythm——只在 `decks/*.json` 的预审卡片里选。
+- **L2 种子**：seed 决定具体组合与微扰动；同 `project` + 同 seed + 同参数（`--base`/`--vary`/`--lock`/`--explore`）+ 同 decks/weights/history = 同结果。**seed 单独不是配方号**：换 `--base` 或往 `recipes/` 里多写一份配方，都会改变结果，这些前提都记在 `recipe.context` 里（`argv` 原文 + `deckFingerprint` 牌组指纹）。想让参数真的进熵源，用 `--strict-seed` 显式打开；默认不开，以保证既有 seed 的结果不变。
+- **L3 经验**：每次交付后的用户反馈写进 `experiences/`；单次只做案例，重复出现或用户明确要求才升级为规则，规则改动必须人工确认。
+
+**配方是唯一事实源。** 文案、分镜、预览、封面、MP4 都从 `recipes/<project>-<seed>.json` 派生，不临场换世界。
+
+```bash
+# 第一次：在牌组内抽一套完整配方
+node scripts/pick.mjs --project my-film --seed 20261103-a --no-history
+
+# 下一支：基于上一支配方，最多改 2 个轴
+node scripts/pick.mjs --project next --base recipes/dsh-armory-depot-20261103.json --vary hook,transition --seed 20261103-b
+
+# 只换世界；不兼容的轴自动重抽，记入 forcedAxes
+node scripts/pick.mjs --project next --base recipes/dsh-armory-depot-20261103.json --vary world
+
+# 校验 / 查看牌组
+node scripts/pick.mjs --validate recipes/dsh-armory-depot-20261103.json
+node scripts/pick.mjs --list
+```
+
+规则：
+
+- 有 `--base` 时最多改 **2 个轴**；其余锁定。改 world 后，不兼容的 transition/caption/sound 自动重抽，写进 `forcedAxes`。
+- 用户点名世界时用 `--lock world=...`（也可锁任意轴，如 `--lock sound=celestial`）：锁定在抽依赖轴**之前**生效，被锁的轴永不被改写，其余不兼容轴重抽并记入 `forcedAxes`，锁定项记在 `context.locked`。若你锁了一个世界根本不允许的组合，会直接 FAIL 而不是偷偷替换你的选择。
+- 默认排除最近 3 份 recipe 的 world/hook；`--no-history` 关闭，`--allow-repeat` 允许重复。
+- `banned: true` 的卡（参考片的暖光扫、半调、闪白、中下贴纸、riser/whoosh、四个地方钩子）默认永不选；它们只做对照与审计。
+- `--explore 0.3` 是 epsilon-greedy：30% 均匀探索，70% 按权重。想更稳用 0，想探索用 0.5–0.8。
+- 图片只随机 2 个轴：构图、光位/材质；文字、版式、品牌、安全区交给代码。封面从同一份 recipe 派生，不另起世界。
+- 配方落盘时写入 `deckFingerprint`（decks + compatibility + weights 的摘要）。之后 `--validate` 若发现牌组已变，会明确提示「同 seed 重跑不保证同样的 picks」，而不是让你以为还能复现。牌组一改，旧配方的可复现性就到期了 —— 这是事实，不是 bug，只有记下来才可查。
+
+评分与回填：`references/scorecard.md`。牌组/权重/兼容矩阵的维护：`references/controlled-randomness.md`。
+
+---
+
+## 1. 先判断任务类型
+
+适用：
+
+- 软件产品 / 插件 / 工具 / 市场 / Agent 产品的 30–60 秒宣传片；
+- 用户给一支参考片，要求“按这个方法做一支全新的”；
+- 用户要 4:3 网页预览、分镜表、节奏表、旁白、字幕、音效；
+- 用户要“预览确认后再渲染 MP4”。
+
+不适用：
+
+- 单纯剪辑已有素材、加字幕、转码；
+- 静态海报 / 图文（可以借本 skill 的文案与视觉方法，但不要套视频工程）；
+- 用户明确要求“完全复刻参考片”（此时应提醒原创性风险，不要默默照做）。
+
+**先确认的事实**：画幅、时长、帧率、语言、产品版本、是否有参考片 MP4 / 工程 / 旁白 / 音效 / 字体、是否需要 BGM。用户没说的，用默认值并在交付时写明。
+
+---
+
+## 2. 工作流阶段（0–7）
+
+### Phase 0 — 拆参考片，只留下方法
+
+先清点参考目录：成片 MP4、工程文件、旁白、时间轴、音效、字体、渲染脚本。
+
+- 有 MP4：抽帧看镜头、转场、字幕、音效落点。
+- 没有 MP4 但有完整工程：用 HTML/JS、narration、timeline、SFX 事件表重建；**明确告诉用户“成片 MP4 缺失，本次按工程拆解”**，不要假装看过原片。
+- 没有播放数据：不要说“这是播放最好的风格”，说“按这支参考片的结构与方法判断”。
+
+输出一张**拆解表**，至少六列：
+
+| 维度 | 要记录什么 |
+|---|---|
+| 视觉 | 底色、主色、字体、材质、光、构图、记忆点 |
+| 文案 | 钩子类型、卖点顺序、句式长度、CTA |
+| 节奏 | 每幕时长、镜头任务、hold、快慢曲线 |
+| 转场 | 硬切 / 运镜 / 光扫 / 遮罩 / 闪白，具体组合 |
+| 字幕 | 位置、出现方式、关键词策略 |
+| 声音 | 旁白声线、BGM、音效名单、密度、卡点 |
+
+然后写两列：**可抽象**（强钩子、一个视觉世界、真实操作、关键词字幕、动作音效）和**禁止复制**（原句、分镜序列、幕长、转场、字幕动效、视觉母题、音效排列）。
+
+模板与 filled example：`references/deconstruction.md`。
+
+### Phase 1 — 抽配方，再找产品真相与新世界
+
+先抽一份 recipe（或读取用户已有的 recipe），确认 `world / hook / transition / caption / sound / rhythm`。用户已经指定世界时用 `--lock world=...`，不要为了随机而随机。
+
+**事实表先于文案。** 每个上屏数字、按钮、状态、命令、版本号都要有出处：代码行、README、package.json、测试。没有出处的数字不上屏；演示数据必须角标标注。
+
+然后从产品名 / 核心动作 / 用户痛点里找一个**新的视觉世界**。一句话概念必须能同时回答：
+
+1. 观众第一眼看到什么？
+2. 产品在画面里以什么方式被“使用”？
+3. 这个世界为什么只适合这个产品？
+
+不要复用参考片的视觉母题，也不要复用你上一支片子的皮肤。一个片子只建立一套世界。可选配方与推导方法：`references/visual-worlds.md`；机器可读版本是 `decks/worlds.json`。
+
+产出一张**差异化矩阵**（9 个轴：钩子、叙事顺序、镜头语法、幕长、转场、字幕系统、视觉母题、声音排列、CTA）。任意 3 个轴仍然高度相似，就重做。详见 `references/originality-gates.md`。
+
+### Phase 2 — 文案、分镜、节奏表
+
+先写**旁白**，再写**字幕关键词**，最后写**分镜**。不要先画画面再硬配字。分镜按 recipe 的 `rhythm` 展开；`storyboard[].budget` 是预算，可 ±10%，但不要重排幕序。
+
+- 10–15 句短句；一句只做一件事；每句 8–24 个汉字为宜。
+- 结构：钩子 → 命名 / 承诺 → 证据 / 操作 → 反转 / 广度 → 行动。
+- 钩子不要复刻参考片。参考片用“四个地方”，你可以用“你还记得几件？”；参考片用“一条命令装好”，你可以用“装得明白，也用得回来”。
+- 字幕只留关键词，不逐句复读；关键词块可以独立于正文。
+- CTA 要具体，但不要照抄参考片的动词与句式。
+- 口播文本要为 TTS 做归一化：`MCP` → `M C P`，`DSH` → `D S H`，`sha256` → `sha 二五六`；避免 TTS 把缩写读成英文整词。
+
+分镜表至少包含：时间、幕名、时长、旁白、画面动作、字幕关键词、转场、音效落点。45 秒默认 5–6 幕；每幕一个动作链，不要平均用力。模板与 6 幕示例：`references/story-rhythm.md`。
+
+### Phase 3 — 4:3 网页高仿真预览
+
+**先做网页，不要直接渲染 MP4。** 网页是低成本试错与确认构图的工具，也是最终逐帧渲染的唯一时间源。
+
+硬要求：
+
+- 舞台固定 1440×1080（4:3），按窗口等比缩放，不裁切；
+- `renderAt(t)` 是纯函数：同一 `t` 必须得到同一帧，不能有跨帧累加；
+- 不写 CSS `transition` / `@keyframes` 来做正片动画；所有动画由 `renderAt` 逐帧写样式；
+- 播放器：播放/暂停、进度拖拽、重播、全屏、0.5×/1×/1.5×/2×、字幕开关、静音/音量、章节跳转；
+- 抽屉：分镜/时间码/文案/差异化/规格；
+- 首屏用一张钩子帧做 poster，点播放从 0 开始；
+- 所有 CSS/JS/音频/SFX 加 `?v=` 版本号，避免改了文件浏览器还在跑旧版。
+
+数据契约、播放器、纯函数写法、音频同步、缓存与 QA：`references/preview-contract.md`。
+
+### Phase 4 — 旁白、音效与混音
+
+- 旁白逐句 TTS（Edge TTS 可用），每句可单独调 rate / pitch / gap；旁白是全片唯一对齐全源。
+- 先缓存原始 mp3，再统一过润音链；改链时用 `--from-cache` 重润，保证时间轴不漂移。
+- 不要默认“有底噪”。先量：静音段是否数字零、语音帧 4–8k 能量、最大瞬态跳变、削顶。用户说“有杂音”时再按句量 20ms 帧的 p10/p5，先找离群句；单句气口优先换 TTS take（标点/停顿变体），不要整片降噪或门限。
+- 齿音/高频气息：`5.2kHz -1.5dB` + `6.8kHz` 8 阶低通是一个保守起点；不要为了降噪把 5k 以下也压暗。
+- 底拍如果要保留，用纯低频 thump；不要带 700–4500Hz 的噪声点击，否则在旁白下像杂音。
+- 音效优先自产（numpy 合成），不要直接复用参考片的音效名单与卡点排列。
+- 以上三步都有脚本，不要手算秒数：`scripts/build_voice.py`（口播稿 → 逐句 TTS + 润音链 + 样本级句子时间轴）、`scripts/build_sfx.py`（13 种材质，每个材质独立随机流，改一个不会动到其它）、`scripts/build_timeline.py`（句子时间轴 + 镜头规格 → `timeline.js` 与 VTT/SRT）。完整命令：`references/audio-and-render.md` §7。
+- 混音留余量；AAC 编码可能让峰值高于源 WAV，必须解码后按立体声逐声道复验。
+
+完整链、噪声诊断与 ffmpeg 参数：`references/audio-and-render.md`。
+
+### Phase 5 — 预览 QA 与确认门
+
+在给用户看之前，自己先过：
+
+- 无 JS 错误；字体加载完成；voice readyState 正常；
+- 1440×1080 与 1366×768 窗口都不裁切；4:3 比例实测 1.3333；
+- 播放、暂停、拖拽、重播、倍速、字幕、静音、音量、全屏、章节、抽屉都能用；
+- **纯函数 seek**：从 0 逐帧推到 t，再直接 seek 到 t，比较所有可见元素的 rect/opacity/transform；必须一致；
+- 关键帧接触表检查构图、文字不溢出、字幕不挡主体、音效不压旁白。
+
+把预览、原创文案、分镜/节奏表、差异化说明一起交给用户。**用户明确认可预览与差异化说明后，才进入 MP4。**
+
+### Phase 6 — 渲染 MP4
+
+从 `recipe.fixed.format` 读取画幅；默认：1440×1080 / 30fps / H.264 High / CRF 19 / AAC 192k / 48kHz。
+
+- headless Edge + CDP 打开 `preview.html?render=1`，按 `i/fps` 调 `__setTime`，逐帧 PNG；
+- 每帧等两个 `requestAnimationFrame` 再截；
+- 已存在的帧跳过，支持断点续跑；
+- 音频不经过浏览器：用旁白 + SFX 事件表在 ffmpeg 里 `adelay` 钉帧、`amix=normalize=0`，事件时刻按 `ceil(t*fps)/fps` 量化；
+- 不要用 `-shortest`（旁白比成片短会截画面）；用 `apad` + `-t 帧数/fps`；
+- 先探真峰值，再给全片统一母线 trim；不要只压旁白或只压音效；
+- 落版先保 CTA：最后一句旁白结束前不要收光圈/淡出，命令完整可读 ≥1.2s；
+- 制作参数（画幅/分辨率/帧率）只放抽屉与交付说明，不进画面；画面脚注放品牌、版本、比喻声明；
+- 编码后清理 PNG 帧目录，保留 `meta.json`、`audio-check.wav`、接触表。
+
+命令与坑：`references/audio-and-render.md`。
+
+`scripts/render.mjs` 已随包附带，不再依赖别的项目。开工前先 `node scripts/render.mjs --preflight`；分阶段跑 `--frames-only`（先看构图）→ `--audio-only`（先听混音）→ `--encode-only`（再出片）。没有 NVENC 会自动降级 libx264。
+
+### Phase 7 — 成片 QA 与交付
+
+至少检查：
+
+- 画幅、帧率、编码、帧数、容器时长；
+- 音频时长覆盖整片、峰值 ≤ 0 dBFS、逐声道 0 削顶；
+- 音画包络偏移 ≤ 1 帧；
+- 10 个左右关键帧“成片解码帧 vs 现截帧”的平均差与大幅差；采样时刻取**每幕落定后 ≥0.3s**，不要踩在换幕起点 —— 百叶快门与片尾淡出那几十毫秒本来就是黑帧，采到只会得到一个真确但无意义的报警。“画面为空”的判据看**结构**（亮度标准差与亮像素占比），不看平均亮度：atlas / tower / blueprint / depot 都是 `#05–#08` 暗底，有内容的落定帧 mean 只有 5~7。
+- 接触表；文件大小与 SHA-256；
+- 交付 README：成片链接、规格、QA 结果、重出命令、已知限制。
+
+`scripts/qa_mp4.py` 是一份可直接改路径使用的成片 QA 脚本。它和 render.mjs 用同一套 ffmpeg 探测（`PROMO_FFMPEG` → PATH → 剪映自带），不再要求 ffmpeg 必须在 PATH 上。加 `--ref` 做逐帧回捞时必须带 `--project-root <影片工程目录>`，否则重截会在错误的目录里找页面。
+
+### Phase 8 — 交付后反馈与自更新（默认执行）
+
+成片和封面交付后，不要停在“文件给你了”。直接运行 `node scripts/feedback.mjs --prompt`，把输出发出去（或按同样措辞发一条消息）。问 3+1 个问题：
+
+1. 整体 0–10 分（≥8 很好 / 6–7 可用 / <6 不行）；
+2. 最想保留的一点（钩子 / 节奏 / 视觉 / 文案 / 声音 / 封面 / 工程）；
+3. 最想改的一点（能指到秒数或某一幕最好）；
+4. 这次经验怎么沉淀：仅本次 / 可复用 / 可直接改规则。
+
+判定与落盘：
+
+- ≥8 + 无硬失败 + 可复用 → `success`，写复用清单，`promotion: candidate`；
+- 6–7.9 → `conditional`，写适用条件，不升级规则；
+- <6 或任一硬失败 → `fail`，写根因 + 已验证修法；
+- 没回 / 不评 → `unrated`，只留元数据，不追问。
+
+```bash
+node scripts/feedback.mjs --new --project <slug> --recipe <path>   --score <0-10> --tags "视觉,音频" --summary "..." --quote "..." --generalizable
+node scripts/feedback.mjs --validate
+node scripts/feedback.mjs --index
+```
+
+**单次反馈不许改规则、权重、牌组。** `candidate` 需要 2 个独立项目重复，或用户明确说“以后都这样”；先把 diff 给用户看，确认后才改 `SKILL.md` / `references/` / `decks/` / `weights.json`，并 bump 版本 + 写 changelog。不要问七项评分卡，不要拿“没问题”当好评。
+
+完整问法、判定表、硬失败清单与升级闸门：`references/feedback-loop.md`。
+
+---
+
+## 3. 设计模式（可迁移）
+
+### 3.1 钩子
+
+| 类型 | 句式 | 适合 |
+|---|---|---|
+| 提问 | “你还记得几件？” | 用户有“装了很多但失控”的痛点 |
+| 损失 | “装完就再没被叫过” | 工具体积/上下文成本 |
+| 反差 | “四个地方，现在只剩一个入口” | 入口分散 |
+| 倒计时 | “三秒，找到上周装的那个” | 搜索/召回 |
+| 物件 | 一件物品从画面穿过 | 有强符号的产品 |
+
+选一个参考片**没有用过**的钩子。不要把参考片的钩子换个名词。
+
+### 3.2 叙事骨架
+
+- **盘点 / 审计**：有什么 → 谁没用 → 怎么调用 → 怎么搬走。
+- **装配**：四块部件 → 合体 → 运转 → 落版。
+- **救援**：混乱现场 → 找到问题 → 修复 → 恢复秩序。
+- **对比**：旧流程 vs 新流程，但不要做成功能清单。
+- **一天**：早上找工具 → 中午装错 → 晚上复盘。
+- **星图救援**：失联 → 星图 → 来路 → 暗星 → 牵引 → 落版。适合“能力很多、叫不出”的工具库；星图只做看法，不是产品功能。
+
+### 3.3 节奏
+
+- 45 秒是默认注意力预算；5–6 幕；单幕 5–9 秒。
+- 密度曲线：中密 → 蓄力 → 高密 → 峰值 → 高密 → 收束。
+- 一句旁白配一个动作；一个动作只占一个视觉焦点。
+- 关键信息落定后 hold ≥ 0.8s；硬切前后留 0.2–0.3s 呼吸。
+- 不要为了凑时长整体拉慢镜头；用呼吸、转场压缩和信息层补时间。
+
+### 3.4 字幕
+
+- 关键词，不是逐句。
+- 位置要么中下，要么左下/左上；一旦选定，全片不要漂移。
+- 出现方式：打印式揭示、遮罩、打字、盖章——选一种，和视觉世界一致。
+- 关键词块可以独立成色块，不要和正文抢同一行。
+
+### 3.5 声音
+
+- 旁白是主轴；音效只托动作，不铺满。
+- 底拍要么没有，要么纯低频；不要用高频 click 当“节奏”。
+- 转场音不要用参考片的 riser / whoosh / shimmer 组合；换一套材质（机械、纸张、继电器、伺服、扫描）。
+- 混音目标：旁白清晰、音效可辨、峰值留 1–3 dB 余量。
+
+---
+
+## 4. 工程契约（短版）
+
+```js
+window.PROMO = {
+  dur: 44.94, fps: 30, size: [1440, 1080],
+  voice: "assets/audio/voice.m4a",
+  sfxDir: "assets/sfx/",
+  gains: { voice: 1, sfx: 0.62 },
+  scenes: [{ id, title, code, start, end, hud, cues: { ... } }],
+  captions: [[start, end, "字幕", "关键词"]],
+  sfx: [{ t, name, g, pan }],
+};
+```
+
+- `scenes[].cues` 用绝对秒；幕内动作全部相对幕起点。
+- `captions` 与 `sfx` 由旁白时间轴生成，不手写死。
+- `renderAt(t)` 里不读 `Date.now()`、不用 `Math.random()`、不写回元素状态。
+- `?render=1`：隐藏 UI、停掉音频、固定 1440×1080、暴露 `__ready / __duration / __fps / __setTime(t)`。
+- 播放器与导出共用同一份 `timeline.js`；倍速只改 `t` 的推进速率。
+
+细节与代码：`references/preview-contract.md`。
+
+---
+
+## 5. QA 闸门
+
+**预览**
+
+- [ ] 无 JS 错误
+- [ ] 4:3 比例 1.3333，1440/1366 窗口不裁切
+- [ ] 播放 / 拖拽 / 重播 / 倍速 / 字幕 / 静音 / 音量 / 全屏 / 章节 / 抽屉
+- [ ] 纯函数 seek：0→t 逐帧 vs 直接 seek，元素签名一致
+- [ ] 关键帧无文字溢出、无遮挡、无空镜
+
+**成片**
+
+- [ ] 画幅 / 帧率 / 编码 / 帧数 / 时长
+- [ ] 音频覆盖整片、峰值 ≤ 0、逐声道 0 削顶
+- [ ] 音画偏移 ≤ 1 帧
+- [ ] 10 帧回捞对比通过
+- [ ] 接触表、SHA-256、交付说明
+- [ ] 交付后按 Phase 8 发 3+1 回访；不等回复，不阻塞交付
+
+**常见假阳性**：ffmpeg `-ac 1` 的立体声下混会用 0.707 系数，可能制造“假削顶”。检查削顶时必须解码立体声逐声道，不能只看单声道下混。
+
+---
+
+## 6. 九个常见坑
+
+1. **把参考片的“方法”当成“风格”**：换色、换字、换贴纸不算原创；分镜顺序、幕长、转场组合、字幕位置、音效排列至少要有 7 个轴明显不同（任意 3 个轴同/近就重做）。
+2. **先画画面再配字**：会导致功能被硬塞、事实不准。先事实表，再文案，再分镜。
+3. **把不存在的字段放上屏**：Skill 卡只有装于/来源/分类，就不要放“上次调用”；零调用属于工具账本。每个字段先找出处。
+4. **CSS 动画混进正片**：`renderAt` 与 CSS transition 打架，seek 会花。正片动画全部由 JS 逐帧写样式。
+5. **音频每帧写 currentTime**：会听出沙沙/咔哒。用“自由走 + 迟滞纠偏”（±0.15s 不动，±0.30s 才 seek）。
+6. **AAC 峰值只看源 WAV**：编码后可能过冲。必须解码 MP4 按立体声复验。
+7. **缓存**：改了 CSS/JS/音频不加版本号，预览会跑旧文件；所有资源带 `?v=`，交付时提醒强制刷新。
+8. **把视觉比喻写成产品功能**：产品里没有“星图”，口播却说“把能力连成一张星图”，观众会期待一个不存在的功能。第一次出现必须用“比作/像/是看法”，中段交回真实界面，落版/封面加脚注。
+9. **用整片降噪掩盖单句气口**：先按句量 p10/p5，找离群句；单句气口先换 TTS take（标点变体），再考虑低通/门限。`afftdn` 对这类气口通常无效，整片门限会切字尾。
+
+---
+
+## 7. 参考文件
+
+- `references/deconstruction.md` — 参考片拆解表、可借/禁借清单、filled example。
+- `references/originality-gates.md` — 9 轴雷同自检、改写策略、失败案例。
+- `references/story-rhythm.md` — 钩子类型、6 幕骨架、45 秒预算、字幕/CTA 规则。
+- `references/visual-worlds.md` — 7 套视觉世界配方（夜班盘点台 / 蓝图检修 / 塔台调度 / 档案卷宗 / 实验台 / 野战手册 / 星图台）。
+- `references/preview-contract.md` — 4:3 舞台、播放器、纯函数、音频同步、缓存。
+- `references/audio-and-render.md` — TTS 润音链、降噪诊断、SFX 合成、ffmpeg 渲染、QA 坑。
+- `references/facts-and-copy.md` — 事实表模板、演示数据标注、口播归一化、文案反例。
+- `references/controlled-randomness.md` — v2 牌组、兼容矩阵、权重、seed、加卡/调权重规则。
+- `references/scorecard.md` — 盲评 7 项、淘汰线、性能回填。
+- `references/case-dsh-armory-atlas.md` — 2026-11-04 能力星图案例：参考片选择、比喻合同、单句气口、编号/落版/封面修复与验收数字。
+- `references/feedback-loop.md` — 交付后 3+1 问法、success/conditional/fail/unrated 判定、经验落盘、规则升级闸门与回滚。
+- `experiences/` — 每次交付的反馈账本（`_template.md` + `INDEX.md`）；只存项目/配方/分数/短引用，不存素材与个人信息。
+- `scripts/feedback.mjs` — 经验条目新建、schema 校验、索引重建、候选列表。
+- `scripts/render.mjs` — 通用逐帧渲染/混音/编码；在项目根跑，或用 `--root <项目>` 指定；先跑 `--preflight` 查工具链。
+- `scripts/build_voice.py` — 口播稿 json → 逐句 TTS + 润音链 → 样本级句子时间轴 `voice_timeline_<slug>.json` 与 `voice_<slug>.wav/.m4a`；`--from-cache` 只重润不改时长。
+- `scripts/build_timeline.py` — 句子时间轴 + 镜头规格 → `timeline.js`（`window.PROMO`）、`narration.vtt/.srt`（整句口播，给平台外挂字幕）、`captions.vtt/.srt`（上屏关键词）。
+- `scripts/build_sfx.py` — 13 种材质自产音效（numpy，无参考片音源）；每个材质独立随机流，改/加/重排材质不会影响其它材质字节。
+- `scripts/tts_chain.py` — 润音链通用件（解码/裁静/EQ/压缩/淡入淡出/真峰值限幅/样本级拼装），被 `build_voice.py` 调用。
+- `scripts/doctor.mjs` — 牌组注册表体检：active world 是否都有兼容条目、悬空引用、永不可达的卡、权重缺项、文档世界数是否与牌组一致；不一致退出码 1。加卡/禁卡后必跑。
+- `decks/*.json` — world / hook / transition / caption / sound / rhythm 牌组（含 banned 对照卡）。
+- `compatibility.json` — world × 其余轴的合法组合。
+- `weights.json` — 权重与 explore 比例。
+- `recipes/_template.json`、`recipes/dsh-armory-depot-20261103.json` — 配方模板与 seed 配方。
+- `scripts/pick.mjs` — seeded 抽牌器、兼容性校验、prompt 块、storyboard 输出。
+- `scripts/qa_mp4.py` — 成片规格/音频/接触表/逐帧回捞 QA（改路径即用）。
+- `evals/evals.json` — 真实任务测试提示。
+
+## 8. 参考实现
+
+如果工作区里有之前做过的片子（例如 `promo-depot/`、`promo-atlas/`），可以把它当作**工程实现参考**：看 `assets/engine.js` 的纯函数、`assets/player.js` 的播放器、`scripts/render.mjs` 的逐帧导出、`scripts/qa_mp4.py` 的验收。不要复制它的视觉皮肤与文案——只复用工程管线和检查方法。
+
+一句话：**先抽一份受控配方，再把参考片拆成方法，从产品真相里长出一个新世界，用纯函数舞台和逐帧 QA 把它钉死；交付后再问一次真实反馈，把案例和规则分开沉淀。**

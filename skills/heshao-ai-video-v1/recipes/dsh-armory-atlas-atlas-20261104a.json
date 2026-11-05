@@ -1,0 +1,96 @@
+{
+  "version": 2,
+  "project": "dsh-armory-atlas",
+  "seed": "atlas-20261104a",
+  "created": "2026-11-04",
+  "format": "video-4x3",
+  "picks": {
+    "world": "tower",
+    "hook": "contrast",
+    "transition": "scan-wipe",
+    "caption": "margin-note",
+    "sound": "mechanical",
+    "rhythm": "day"
+  },
+  "fixed": {
+    "format": "4:3 1440x1080",
+    "kind": "video",
+    "fps": 30,
+    "durationTarget": 45,
+    "qa": [
+      "fact-table",
+      "originality-8-axis",
+      "pure-seek",
+      "stereo-peak",
+      "av-offset"
+    ]
+  },
+  "newAxes": [
+    "world",
+    "rhythm"
+  ],
+  "forcedAxes": [
+    "hook",
+    "transition",
+    "caption"
+  ],
+  "compatibility": true,
+  "context": {
+    "base": "recipes/dsh-armory-depot-20261103.json",
+    "vary": [
+      "world",
+      "rhythm"
+    ],
+    "excludeWorlds": [],
+    "excludeHooks": [],
+    "historyWindow": 3,
+    "explore": 0
+  },
+  "prompt": {
+    "image": "dark air-traffic control tower at night, green radar rings, paper flight strips, amber signal lights, glass and steel, cinematic top light, no text. Palette bg:#050b16, surface:#0c1a2b, paper:#e8eef5, accent:#7dffb2, warning:#ffb02e, stamp:#ff4d4d. Type NotoSansSC 700/900/Geist/Geist Mono. Motifs: radar ring, flight strip, runway light, signal lamp, glass. Composition: leave deliberate negative space for a headline; no readable text, no logos, no letters.",
+    "video": "一天: 早上 → 中午 → 傍晚 → 夜里 → 落版. Motion: radar sweep, strip slide, light blink, panel switch, hard cut. Transition: 扫描擦除. Captions: 页边注. Sound: 机械音. Hook pattern: [N] 个 [入口]，现在只剩 [1] 个入口。. Avoid the reference film's exact copy, shot order, durations, transition combination, caption animation, motifs and SFX arrangement.",
+    "cover": "3:4 control tower poster, radar ring and flight strips, amber and radar green, top negative space, one strong signal light. Hook: 反差. Hero motif: radar ring. Brand block at bottom; keep key text in the top 75% and the right 120px clear. Render all text in HTML/SVG, not in the generated image.",
+    "negative": "reference film's exact copy, shot order, durations, light sweep, halftone wipe, flash white, center keyword sticker, metal title slam, riser/whoosh/shimmer, gibberish Chinese text, logos, watermarks"
+  },
+  "storyboard": [
+    {
+      "i": 1,
+      "name": "早上",
+      "task": "开始工作时的痛点",
+      "budget": 9
+    },
+    {
+      "i": 2,
+      "name": "中午",
+      "task": "第一次使用/发现",
+      "budget": 9
+    },
+    {
+      "i": 3,
+      "name": "傍晚",
+      "task": "高频动作/复用",
+      "budget": 9
+    },
+    {
+      "i": 4,
+      "name": "夜里",
+      "task": "复盘/账本/清理",
+      "budget": 9
+    },
+    {
+      "i": 5,
+      "name": "落版",
+      "task": "价值句 + 命令",
+      "budget": 9
+    }
+  ],
+  "score": {
+    "hook": 0,
+    "thumbnail": 0,
+    "fact": 0,
+    "rhythm": 0,
+    "originality": 0,
+    "audio": 0
+  },
+  "notes": "DEPRECATED：修复前默认文件名重复的产物；picks 为 tower/contrast/scan-wipe，不是本片配方。以 dsh-armory-atlas-20261104a.json 为准。"
+}

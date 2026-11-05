@@ -1,0 +1,49 @@
+{
+  "explore": 0.3,
+  "worlds": {
+    "depot": 3,
+    "blueprint": 2,
+    "tower": 2,
+    "archive": 2,
+    "lab": 1,
+    "field": 1,
+    "atlas": 1
+  },
+  "hooks": {
+    "question": 3,
+    "loss": 3,
+    "contrast": 2,
+    "countdown": 1,
+    "object": 2,
+    "confession": 1
+  },
+  "transitions": {
+    "mechanical-shutter": 3,
+    "paper-fold": 2,
+    "scan-wipe": 2,
+    "drawer-slam": 2,
+    "hard-cut": 1,
+    "eclipse-wipe": 1
+  },
+  "captions": {
+    "lower-left-label": 3,
+    "margin-note": 2,
+    "ticket-strip": 2,
+    "case-label": 2,
+    "plate-header": 1
+  },
+  "sounds": {
+    "mechanical": 3,
+    "paper": 2,
+    "electronic": 2,
+    "field": 1,
+    "celestial": 1
+  },
+  "rhythms": {
+    "audit": 3,
+    "assembly": 2,
+    "rescue": 2,
+    "compare": 1,
+    "day": 1
+  }
+}

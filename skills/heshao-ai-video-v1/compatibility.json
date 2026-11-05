@@ -1,0 +1,170 @@
+{
+  "depot": {
+    "hooks": [
+      "question",
+      "loss",
+      "object"
+    ],
+    "transitions": [
+      "mechanical-shutter",
+      "hard-cut"
+    ],
+    "captions": [
+      "lower-left-label",
+      "case-label"
+    ],
+    "sounds": [
+      "mechanical",
+      "paper"
+    ],
+    "rhythms": [
+      "audit",
+      "assembly",
+      "day"
+    ]
+  },
+  "blueprint": {
+    "hooks": [
+      "contrast",
+      "countdown",
+      "question"
+    ],
+    "transitions": [
+      "paper-fold",
+      "hard-cut"
+    ],
+    "captions": [
+      "margin-note",
+      "case-label"
+    ],
+    "sounds": [
+      "paper",
+      "mechanical"
+    ],
+    "rhythms": [
+      "assembly",
+      "audit",
+      "compare"
+    ]
+  },
+  "tower": {
+    "hooks": [
+      "contrast",
+      "countdown",
+      "loss"
+    ],
+    "transitions": [
+      "scan-wipe",
+      "hard-cut"
+    ],
+    "captions": [
+      "ticket-strip",
+      "margin-note"
+    ],
+    "sounds": [
+      "electronic",
+      "mechanical"
+    ],
+    "rhythms": [
+      "rescue",
+      "compare",
+      "day"
+    ]
+  },
+  "archive": {
+    "hooks": [
+      "question",
+      "confession",
+      "object"
+    ],
+    "transitions": [
+      "paper-fold",
+      "drawer-slam"
+    ],
+    "captions": [
+      "case-label",
+      "margin-note"
+    ],
+    "sounds": [
+      "paper",
+      "mechanical"
+    ],
+    "rhythms": [
+      "audit",
+      "rescue",
+      "compare"
+    ]
+  },
+  "lab": {
+    "hooks": [
+      "contrast",
+      "countdown",
+      "confession"
+    ],
+    "transitions": [
+      "scan-wipe",
+      "hard-cut"
+    ],
+    "captions": [
+      "lower-left-label",
+      "margin-note"
+    ],
+    "sounds": [
+      "electronic",
+      "mechanical"
+    ],
+    "rhythms": [
+      "compare",
+      "assembly",
+      "day"
+    ]
+  },
+  "field": {
+    "hooks": [
+      "loss",
+      "object",
+      "contrast"
+    ],
+    "transitions": [
+      "paper-fold",
+      "drawer-slam"
+    ],
+    "captions": [
+      "ticket-strip",
+      "lower-left-label"
+    ],
+    "sounds": [
+      "field",
+      "paper"
+    ],
+    "rhythms": [
+      "rescue",
+      "day",
+      "assembly"
+    ]
+  },
+  "atlas": {
+    "hooks": [
+      "countdown",
+      "contrast",
+      "loss"
+    ],
+    "transitions": [
+      "eclipse-wipe",
+      "hard-cut"
+    ],
+    "captions": [
+      "plate-header",
+      "margin-note"
+    ],
+    "sounds": [
+      "celestial",
+      "electronic"
+    ],
+    "rhythms": [
+      "rescue",
+      "compare",
+      "day"
+    ]
+  }
+}

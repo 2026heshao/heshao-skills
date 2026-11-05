@@ -1,0 +1,104 @@
+{
+  "version": 2,
+  "project": "dsh-armory-depot",
+  "seed": "depot-20261103",
+  "created": "2026-11-03",
+  "format": "video-4x3",
+  "picks": {
+    "world": "depot",
+    "hook": "question",
+    "transition": "mechanical-shutter",
+    "caption": "lower-left-label",
+    "sound": "mechanical",
+    "rhythm": "audit"
+  },
+  "fixed": {
+    "format": "4:3 1440x1080",
+    "kind": "video",
+    "fps": 30,
+    "durationTarget": 44.9,
+    "qa": [
+      "fact-table",
+      "originality-8-axis",
+      "pure-seek",
+      "stereo-peak",
+      "av-offset"
+    ]
+  },
+  "newAxes": [
+    "world",
+    "hook",
+    "transition",
+    "caption",
+    "sound",
+    "rhythm"
+  ],
+  "forcedAxes": [],
+  "compatibility": true,
+  "context": {
+    "base": null,
+    "vary": null,
+    "excludeWorlds": [],
+    "excludeHooks": [],
+    "historyWindow": 3,
+    "explore": 0.3
+  },
+  "prompt": {
+    "image": "dark olive depot at night, bone paper inventory tag, thick barcode, red rubber stamp, conveyor, top-left volumetric light, graphic poster lighting, no text. Palette bg:#080d0a, surface:#151f19, paper:#f2ebdc, accent:#c9f45b, warning:#ff6a3d, stamp:#df4a33. Type NotoSansSC 900/Geist/Geist Mono. Motifs: paper tag, barcode, steel crate, red stamp, perforated steel. Composition: leave deliberate negative space for a headline; no readable text, no logos, no letters.",
+    "video": "盘点/审计: 入库口 → 建账 → 翻账 → 减重 → 点名 → 入库. Motion: conveyor, magnetic snap, stamp impact, tool roll, lid flip. Transition: 机械快门. Captions: 左下入库标签. Sound: 机械音. Hook pattern: 给 [对象] 装了这么多，你还记得几件？. Avoid the reference film's exact copy, shot order, durations, transition combination, caption animation, motifs and SFX arrangement.",
+    "cover": "3:4 poster, huge bone paper tag in lower half, red stamp, barcode, top negative space for headline, dark steel depot. Hook: 提问. Hero motif: paper tag. Brand block at bottom; keep key text in the top 75% and the right 120px clear. Render all text in HTML/SVG, not in the generated image.",
+    "negative": "reference film's exact copy, shot order, durations, light sweep, halftone wipe, flash white, center keyword sticker, metal title slam, riser/whoosh/shimmer, gibberish Chinese text, logos, watermarks"
+  },
+  "storyboard": [
+    {
+      "i": 1,
+      "name": "入库口",
+      "task": "钩子：一个强符号 + 一个损失/数量",
+      "budget": 6
+    },
+    {
+      "i": 2,
+      "name": "建账",
+      "task": "命名 + 把四类东西收进一张单",
+      "budget": 7.7
+    },
+    {
+      "i": 3,
+      "name": "翻账",
+      "task": "证据 1：装于/来源/分类/最近",
+      "budget": 7.1
+    },
+    {
+      "i": 4,
+      "name": "减重",
+      "task": "证据 2：零调用/成本/禁用释放",
+      "budget": 7
+    },
+    {
+      "i": 5,
+      "name": "点名",
+      "task": "证据 3：召唤/套件/本项目",
+      "budget": 8.6
+    },
+    {
+      "i": 6,
+      "name": "入库",
+      "task": "落版：价值句 + 命令",
+      "budget": 8.5
+    }
+  ],
+  "score": {
+    "hook": 9,
+    "thumbnail": 8,
+    "fact": 10,
+    "rhythm": 9,
+    "originality": 9,
+    "audio": 9
+  },
+  "notes": "Seed recipe for heshao-ai-video-v1 v2. Proves the depot world. Cover derived from the same recipe at promo-depot/cover-douyin.html.",
+  "deliverables": {
+    "video": "promo-depot/out/final/dsh-armory-depot-4x3.mp4",
+    "cover": "promo-depot/cover-douyin.png",
+    "preview": "promo-depot/preview.html"
+  }
+}

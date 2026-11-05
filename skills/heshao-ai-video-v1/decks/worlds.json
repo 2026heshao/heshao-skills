@@ -1,0 +1,293 @@
+{
+  "version": 2,
+  "cards": [
+    {
+      "id": "depot",
+      "name": "夜班盘点台",
+      "concept": "黄昏后的军械库盘点台：传送带、骨白纸单、钢箱、红章、条码。",
+      "palette": {
+        "bg": "#080d0a",
+        "surface": "#151f19",
+        "paper": "#f2ebdc",
+        "accent": "#c9f45b",
+        "warning": "#ff6a3d",
+        "stamp": "#df4a33"
+      },
+      "type": {
+        "zh": "NotoSansSC 900",
+        "latin": "Geist",
+        "mono": "Geist Mono"
+      },
+      "motifs": [
+        "paper tag",
+        "barcode",
+        "steel crate",
+        "red stamp",
+        "perforated steel"
+      ],
+      "motion": [
+        "conveyor",
+        "magnetic snap",
+        "stamp impact",
+        "tool roll",
+        "lid flip"
+      ],
+      "bestFor": [
+        "inventory",
+        "plugin market",
+        "tool library",
+        "skill manager"
+      ],
+      "imageDirection": "dark olive depot at night, bone paper inventory tag, thick barcode, red rubber stamp, conveyor, top-left volumetric light, graphic poster lighting, no text",
+      "coverDirection": "3:4 poster, huge bone paper tag in lower half, red stamp, barcode, top negative space for headline, dark steel depot",
+      "risk": "low"
+    },
+    {
+      "id": "blueprint",
+      "name": "蓝图检修",
+      "concept": "普鲁士蓝图纸上的检修：尺寸线、剖切符号、描线、红章。",
+      "palette": {
+        "bg": "#071b2b",
+        "surface": "#0d2a3d",
+        "paper": "#f4f1e8",
+        "accent": "#4d8dff",
+        "warning": "#ffb02e",
+        "stamp": "#e5482f"
+      },
+      "type": {
+        "zh": "NotoSansSC 700/900",
+        "latin": "Geist",
+        "mono": "Geist Mono"
+      },
+      "motifs": [
+        "blueprint grid",
+        "dimension line",
+        "section mark",
+        "tracing paper",
+        "rivet"
+      ],
+      "motion": [
+        "line draw",
+        "dimension close",
+        "section reveal",
+        "paper fold",
+        "stamp"
+      ],
+      "bestFor": [
+        "architecture",
+        "developer tool",
+        "security audit",
+        "engineering"
+      ],
+      "imageDirection": "deep prussian blue blueprint on tracing paper, precise dimension lines, section marks, cream paper sheet, vermilion stamp, overhead inspection light, no text",
+      "coverDirection": "3:4 blueprint poster, oversized technical drawing, one red revision stamp, top blank for headline, cream and cobalt",
+      "risk": "low"
+    },
+    {
+      "id": "tower",
+      "name": "塔台调度",
+      "concept": "夜班塔台：雷达环、航班条、信号灯、跑道。",
+      "palette": {
+        "bg": "#050b16",
+        "surface": "#0c1a2b",
+        "paper": "#e8eef5",
+        "accent": "#7dffb2",
+        "warning": "#ffb02e",
+        "stamp": "#ff4d4d"
+      },
+      "type": {
+        "zh": "NotoSansSC 700/900",
+        "latin": "Geist",
+        "mono": "Geist Mono"
+      },
+      "motifs": [
+        "radar ring",
+        "flight strip",
+        "runway light",
+        "signal lamp",
+        "glass"
+      ],
+      "motion": [
+        "radar sweep",
+        "strip slide",
+        "light blink",
+        "panel switch",
+        "hard cut"
+      ],
+      "bestFor": [
+        "multi-market routing",
+        "monitoring",
+        "orchestration",
+        "operations"
+      ],
+      "imageDirection": "dark air-traffic control tower at night, green radar rings, paper flight strips, amber signal lights, glass and steel, cinematic top light, no text",
+      "coverDirection": "3:4 control tower poster, radar ring and flight strips, amber and radar green, top negative space, one strong signal light",
+      "risk": "low"
+    },
+    {
+      "id": "archive",
+      "name": "档案卷宗",
+      "concept": "牛皮纸卷宗、打孔、绳扣、索引卡、红章。",
+      "palette": {
+        "bg": "#1a1510",
+        "surface": "#2a2118",
+        "paper": "#e8dfc8",
+        "accent": "#b48a4a",
+        "warning": "#c96a2b",
+        "stamp": "#a83226"
+      },
+      "type": {
+        "zh": "NotoSansSC 700/900",
+        "latin": "Geist",
+        "mono": "Geist Mono"
+      },
+      "motifs": [
+        "kraft folder",
+        "punch hole",
+        "string tie",
+        "index card",
+        "red stamp"
+      ],
+      "motion": [
+        "folder pull",
+        "page turn",
+        "stamp",
+        "label stick",
+        "drawer"
+      ],
+      "bestFor": [
+        "experts",
+        "knowledge base",
+        "compliance",
+        "version history"
+      ],
+      "imageDirection": "warm archive table, kraft folders, punched index cards, red stamp, string ties, overhead light, paper texture, no text",
+      "coverDirection": "3:4 archive cover, one oversized kraft folder with index card and red stamp, top blank for headline, warm paper and ink",
+      "risk": "low"
+    },
+    {
+      "id": "lab",
+      "name": "实验台",
+      "concept": "冷白实验台：量筒、标签、夹子、网格垫、测量。",
+      "palette": {
+        "bg": "#e9edf0",
+        "surface": "#cfd7dc",
+        "paper": "#ffffff",
+        "accent": "#1f6bff",
+        "warning": "#ffce3a",
+        "stamp": "#e5482f"
+      },
+      "type": {
+        "zh": "NotoSansSC 700/900",
+        "latin": "Geist",
+        "mono": "Geist Mono"
+      },
+      "motifs": [
+        "lab bench",
+        "vial",
+        "label",
+        "clamp",
+        "measure grid"
+      ],
+      "motion": [
+        "drip",
+        "liquid line",
+        "clamp",
+        "label stick",
+        "measure"
+      ],
+      "bestFor": [
+        "AI capability",
+        "benchmark",
+        "data",
+        "model evaluation"
+      ],
+      "imageDirection": "clean cool-white laboratory bench, glass vials, measurement grid, labels, graphite tools, soft directional light, no text",
+      "coverDirection": "3:4 lab poster, one oversized sample vial or labeled tray, cool white and graphite, one blue accent, top space for headline",
+      "risk": "medium"
+    },
+    {
+      "id": "field",
+      "name": "野战手册",
+      "concept": "卡其帆布、模板喷字、活页夹、地图、胶带、铆钉。",
+      "palette": {
+        "bg": "#1b1a12",
+        "surface": "#2a2a1c",
+        "paper": "#e7dfc4",
+        "accent": "#c7ff4d",
+        "warning": "#ff7a2e",
+        "stamp": "#b53a26"
+      },
+      "type": {
+        "zh": "NotoSansSC 700/900",
+        "latin": "Geist",
+        "mono": "Geist Mono"
+      },
+      "motifs": [
+        "canvas",
+        "stencil",
+        "binder",
+        "map",
+        "tape",
+        "rivet"
+      ],
+      "motion": [
+        "binder flip",
+        "map pull",
+        "tape peel",
+        "stamp",
+        "zip"
+      ],
+      "bestFor": [
+        "deployment",
+        "installation",
+        "migration",
+        "field checklist"
+      ],
+      "imageDirection": "olive canvas field manual on a dark table, stencil markings, binder rings, folded map, safety orange tape, hard light, no text",
+      "coverDirection": "3:4 field manual poster, oversized canvas binder with stencil label and tape, top blank for headline, olive and bone",
+      "risk": "low"
+    },
+    {
+      "id": "atlas",
+      "name": "星图台",
+      "concept": "深靛夜空中的能力星图：黄铜刻度环、星等标签、星座连线、黄铜光圈；不是仓库，是一张可查询的星图。",
+      "palette": {
+        "bg": "#05070f",
+        "surface": "#0b1224",
+        "paper": "#f2eee2",
+        "accent": "#8fd8ff",
+        "warning": "#ff7a4d",
+        "stamp": "#d8a54a"
+      },
+      "type": {
+        "zh": "NotoSerifSC 600/900",
+        "latin": "Geist",
+        "mono": "Geist Mono"
+      },
+      "motifs": [
+        "star chart",
+        "brass meridian ring",
+        "constellation line",
+        "magnitude label",
+        "aperture"
+      ],
+      "motion": [
+        "sky rotate",
+        "star ignition",
+        "constellation draw",
+        "aperture iris",
+        "eclipse wipe"
+      ],
+      "bestFor": [
+        "capability map",
+        "discovery",
+        "tool library",
+        "skill manager"
+      ],
+      "imageDirection": "deep indigo night-sky observatory plate, brass meridian rings and etched magnitude ticks, fine constellation lines, one warm star, subtle nebula, cinematic rim light, no text, no logos",
+      "coverDirection": "3:4 star-atlas poster, one oversized brass aperture ring in lower half, a single bright star and constellation lines, deep indigo with warm brass, top negative space for headline",
+      "risk": "medium"
+    }
+  ]
+}

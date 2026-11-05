@@ -1,0 +1,44 @@
+{
+  "version": 2,
+  "project": "example",
+  "seed": "example-20261103",
+  "created": "2026-11-03",
+  "format": "video-4x3",
+  "picks": {
+    "world": "depot",
+    "hook": "question",
+    "transition": "mechanical-shutter",
+    "caption": "lower-left-label",
+    "sound": "mechanical",
+    "rhythm": "audit"
+  },
+  "fixed": {
+    "format": "4:3 1440x1080",
+    "fps": 30,
+    "durationTarget": 45,
+    "qa": [
+      "fact-table",
+      "originality-8-axis",
+      "pure-seek",
+      "stereo-peak",
+      "av-offset"
+    ],
+    "kind": "video"
+  },
+  "newAxes": [],
+  "forcedAxes": [],
+  "compatibility": true,
+  "score": {
+    "hook": 0,
+    "thumbnail": 0,
+    "fact": 0,
+    "rhythm": 0,
+    "originality": 0,
+    "audio": 0
+  },
+  "notes": "Copy this template or generate with scripts/pick.mjs.",
+  "context": {},
+  "prompt": {},
+  "storyboard": [],
+  "deliverables": {}
+}
