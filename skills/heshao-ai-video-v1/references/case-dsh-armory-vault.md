@@ -304,22 +304,25 @@ A/B 文件：
 ```bash
 cd promo-vault
 
+# 技能脚本不在本工程内：SKILL_DIR 指向 heshao-ai-video-v1/ 技能根目录
+SKILL_DIR="<技能目录>"
+
 # 时间轴（示例/关键词字幕/音效事件）
-python "C:/Users/LENOVO/.qoder/skills/heshao-ai-video-v1/scripts/build_timeline.py" \
+python "$SKILL_DIR/scripts/build_timeline.py" \
   --spec film.json \
   --voice-timeline assets/audio/voice_timeline_vault.json \
   --out-dir assets
 
 # 混音（先 audio-only；改了 timeline 先 --meta-only 刷指纹）
-node "C:/Users/LENOVO/.qoder/skills/heshao-ai-video-v1/scripts/render.mjs" --root . --meta-only
-node "C:/Users/LENOVO/.qoder/skills/heshao-ai-video-v1/scripts/render.mjs" --root . --audio-only
+node "$SKILL_DIR/scripts/render.mjs" --root . --meta-only
+node "$SKILL_DIR/scripts/render.mjs" --root . --audio-only
 
 # 预览 QA
 node scripts/seek_test.mjs
 node scripts/preview_smoke.mjs
 
 # 用户确认后才逐帧 + 混音 + 编码
-node "C:/Users/LENOVO/.qoder/skills/heshao-ai-video-v1/scripts/render.mjs" --root .
+node "$SKILL_DIR/scripts/render.mjs" --root .
 ```
 
 工程参考：
