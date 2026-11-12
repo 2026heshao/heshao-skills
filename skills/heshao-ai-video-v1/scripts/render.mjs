@@ -436,15 +436,26 @@ async function grab(M) {
 
     const t0 = Date.now();
     let done = 0, skipped = 0;
+    const slowFrames = [];
     for (let i = i0; i < i1; i++) {
       const file = join(FRAMES, `f${String(i).padStart(5, "0")}.png`);
       if (existsSync(file)) { skipped++; continue; }
       // 先把舞台推到确定时刻，再等两个 rAF 让合成器真正画完，才截图
-      await ev(`(async () => {
-        window.__setTime(${i} / ${fps});
-        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-        return 1;
+      /* 页面可选契约：__setTime 返回 Promise 时等它；再等视频 seek 真正结束。
+         以前只等两个 rAF：视频素材解码没完成就截图，成片帧数时长都对、画面却是旧的。
+         实测 6s 单关键帧素材会滞后到 52 帧（≈1.73s），而同一支片在 2s/GOP30 下只差 0–1 帧。 */
+      const stuck = await ev(`(async () => {
+        const r = window.__setTime(${i} / ${fps});
+        if (r && typeof r.then === "function") await r;
+        const vids = Array.from(document.querySelectorAll("video"));
+        const t0 = performance.now();
+        while (vids.some((v) => v.seeking) && performance.now() - t0 < ${VIDEO_WAIT_MS}) {
+          await new Promise((res) => requestAnimationFrame(res));
+        }
+        await new Promise((r2) => requestAnimationFrame(() => requestAnimationFrame(r2)));
+        return vids.filter((v) => v.seeking).length;
       })()`);
+      if (stuck && stuck.result && stuck.result.value > 0) slowFrames.push(i);
       const shot = await send("Page.captureScreenshot", { format: "png", fromSurface: true });
       await writeFile(file, Buffer.from(shot.data, "base64"));
       done++;
@@ -454,6 +465,9 @@ async function grab(M) {
       }
     }
     console.log(`截图完成：新截 ${done} 帧，跳过已存在 ${skipped} 帧，用时 ${((Date.now() - t0) / 1000).toFixed(0)}s`);
+    if (slowFrames.length) {
+      console.warn(`  ⚠ ${slowFrames.length} 帧的视频在 ${VIDEO_WAIT_MS}ms 内仍未完成 seek（帧号 ${slowFrames.slice(0, 8).join("、")}${slowFrames.length > 8 ? " …" : ""}）：这些帧可能是旧画面，先降素材码率/缩短 GOP 或改走图像序列`);
+    }
     return M;
   });
 }
@@ -545,15 +559,22 @@ function countFrames(file) {
  * 再按目标峰值折算一个全片统一的母线 trim —— 只整体平移，不改旁白/音效相对比例。
  * 系数写回 meta.json，成片可复现。 */
 const PROBE_TRIM = 0.25;                    // 20·log10(0.25) ≈ -12.04 dB
+const VIDEO_WAIT_MS = 3000;                 // 单帧等视频 seek 结束的上限；超时不静默，按帧告警
 const TARGET_PEAK_DB = -1.0;
 
 function mixPeak(M, durSec) {
   const A = audioGraph(M, { idx: 0, master: PROBE_TRIM, post: ",astats=measure_perchannel=none:measure_overall=Peak_level+RMS_level" });
   const st = ff(["-hide_banner", ...A.inputs, "-filter_complex", A.filter,
     "-map", "[aout]", "-t", durSec, "-f", "null", "-"], "真峰值探测");
-  const p = [...st.matchAll(/Peak level dB: (-?[\d.]+)/g)].map((m) => Number(m[1]));
-  if (!p.length) throw new Error("真峰值探测没拿到 Peak level，检查这个 ffmpeg 构建的 astats 是否可用");
-  return Math.max(...p) - 20 * Math.log10(PROBE_TRIM);
+  const p = [...st.matchAll(/Peak level dB: (-?[\d.]+|-inf)/g)].map((m) => (m[1] === "-inf" ? -Infinity : Number(m[1])));
+  if (!p.length) throw new Error("真峰值探测没拿到 Peak level（该 ffmpeg 的 astats 可能不支持此过滤器，或输出格式变了）");
+  const peak = Math.max(...p);
+  /* 全零波形在 astats 里是 Peak level dB: -inf —— 不是工具坏了，是信号本身没有能量。
+     以前这里把 -inf 当成"没读到"，报"检查 astats 是否可用"，把无声工程误导成工具故障。 */
+  if (!Number.isFinite(peak)) {
+    throw new Error("旁白/基础音轨是全零数字静音（astats Peak = -inf）：这属于无声工程，请走 --frames-only + 无音轨编码（见 references/ai-animation-workflow.md §5），不要为它硬编一条静音音轨");
+  }
+  return peak - 20 * Math.log10(PROBE_TRIM);
 }
 
 /* 无声工程的拒绝理由：voice 为空时 audioGraph 的输入会退化成工程目录，

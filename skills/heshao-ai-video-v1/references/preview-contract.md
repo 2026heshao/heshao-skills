@@ -191,6 +191,12 @@ window.__setTime = (t) => { lastT = t; renderAt(t); };
 
 截图脚本打开 `?render=1`，等 `__ready`，循环 `__setTime(i/fps)`，等两个 `requestAnimationFrame`，再 `Page.captureScreenshot`。
 
+页面的三项可选契约（不实现也能跑，但遇到异步素材会出错）：
+
+- `__setTime(t)` 可**返回 Promise**，脚本会 `await` 它；异步素材（视频 seek、大图解码、`document.fonts.load`）应在其中等到真正画好再 resolve。
+- 页面里所有 `<video>` 的 `seeking` 必须能在 3 秒内结束；脚本每帧轮询到 `seeking` 为假才截图，超时会点名帧号告警。
+- `__ready` 只代表脚本声明就绪，**不代表素材已可用**；页面需自己 `await img.decode()` / `document.fonts.ready` 之后再置 `true`。
+
 ## 9. 预览 QA 清单
 
 - [ ] 无 JS 错误（`window.__errors`）
