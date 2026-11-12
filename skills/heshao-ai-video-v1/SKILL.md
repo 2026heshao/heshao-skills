@@ -1,6 +1,6 @@
 ---
 name: heshao-ai-video-v1
-version: 2.6.0
+version: 2.6.1
 description: 参考片驱动的原创产品宣传片工作流，v2 先看产品画像再决定熵源（本地牌组 / decks/proposals 试用卡 / 手写配方校验），内置受控随机牌组与 seed 配方：拆解参考片的钩子、文案结构、节奏、镜头、字幕与音效方法，重新设计视觉世界与分镜，产出原创文案、4:3 网页高仿真预览、旁白与自产音效，再逐帧渲染 MP4 并做音画 QA，交付后主动收集反馈并分层沉淀经验。只要用户要做产品宣传片、参考某支视频做新片、要 4:3 网页预览 / 分镜节奏表 / 可交互播放器，或明确说“不想每次抽卡随机 / 要系统性产出 / 在可控范围内变化”，或目标产品的品类跟现有牌组不像（“这个产品牌组里没有”“牌组不全/缺视觉世界怎么办”“要不要联网找参考”），就使用本 skill。Use for product promo videos, reference-driven original films, 4:3 HTML previews, storyboard/rhythm tables, TTS/SFX, frame rendering and A/V QA, controlled-randomness recipe decks, and deck-gap routing when the product does not match the existing cards. 需要 AI 生成实拍级镜头、空镜、转场或首尾帧素材时也走本 skill：内置 Seedance 2.0 子技能负责出提示词。
 ---
 
@@ -19,6 +19,9 @@ Node 22+ · Python 3.12+ · ffmpeg（`h264_nvenc` 或 `libx264`）· Edge/Chrome
 TTS 用 `edge-tts`（在线服务）。ffmpeg / Edge 常常不在 PATH（本机只有剪映自带那份），
 探测顺序：`PROMO_FFMPEG` / `PROMO_EDGE` → PATH → 常见安装目录 → `--ffmpeg` / `--edge` 显式指定。
 开工前先跑 `node scripts/render.mjs --preflight`：缺什么直接说清楚，不要跑到一半才崩。
+它还会体检 Python 侧（`PROMO_PYTHON` → `python` / `python3` / `py`）、打印 Node 版本与
+numpy / scipy / Pillow / edge-tts 的版本；缺包时直接给出该解释器下的 `pip install` 命令，
+缺任一项退出码为 1，不会等跑到 Phase 4 才抛裸 `ModuleNotFoundError`。
 
 ## Workflow
 
@@ -460,14 +463,14 @@ window.PROMO = {
 - `references/feedback-loop.md` — 交付后 3+1 问法、success/conditional/fail/unrated 判定、经验落盘、规则升级闸门与回滚。
 - `experiences/` — 每次交付的反馈账本（`_template.md` + `INDEX.md`）；只存项目/配方/分数/短引用，不存素材与个人信息。
 - `scripts/feedback.mjs` — 经验条目新建、schema 校验、索引重建、候选列表。
-- `scripts/render.mjs` — 通用逐帧渲染/混音/编码；在项目根跑，或用 `--root <项目>` 指定；先跑 `--preflight` 查工具链。
+- `scripts/render.mjs` — 通用逐帧渲染/混音/编码；在项目根跑，或用 `--root <项目>` 指定；先跑 `--preflight` 查工具链（Node 版本、浏览器、ffmpeg 编码器、Python 与 numpy/scipy/Pillow/edge-tts）。
 - `scripts/build_voice.py` — 口播稿 json → 逐句 TTS + 润音链 → 样本级句子时间轴 `voice_timeline_<slug>.json` 与 `voice_<slug>.wav/.m4a`；`--from-cache` 只重润不改时长。
 - `scripts/build_timeline.py` — 句子时间轴 + 镜头规格 → `timeline.js`（`window.PROMO`）、`narration.vtt/.srt`（整句口播，给平台外挂字幕）、`captions.vtt/.srt`（上屏关键词）。
 - `scripts/build_sfx.py` — 13 种材质自产音效（numpy，无参考片音源）；每个材质独立随机流，改/加/重排材质不会影响其它材质字节。
 - `scripts/tts_chain.py` — 润音链通用件（解码/裁静/EQ/压缩/淡入淡出/真峰值限幅/样本级拼装），被 `build_voice.py` 调用。
 - `scripts/check_engine_discipline.mjs` — 舞台层纪律机器检查：挂在 `#stage` 且被幕渲染器写过的元素必须每帧复位、必须进 `signature()`；另带 good/bad 两个 fixture 证明它能变红。
 - `scripts/pacing_report.py` — 节奏闸门：开场 lead / 幕首 lead / 句间空白 / 跨幕空场 / 片尾空场 / 旁白占时比 六项分别判 PASS/FAIL，阈值可用参数覆盖。
-- `scripts/tests/` — 6 个文件、52 用例（`python -m unittest discover -s scripts/tests -p "test_*.py"`）：参数白名单与帧指纹、meta 指纹、账本判定、timeline resolver、sfx 可复现与高频点名、qa_mp4 自检、两个闸门自身。
+- `scripts/tests/` — 7 个文件、55 用例（`python -m unittest discover -s scripts/tests -p "test_*.py"`）：参数白名单与帧指纹、meta 指纹、账本判定、timeline resolver、sfx 可复现与高频点名、qa_mp4 自检、preflight 体检、两个闸门自身。
 - `scripts/doctor.mjs` — 注册表体检：active world 是否都有兼容条目、悬空引用、永不可达的卡、权重缺项、文档世界数；**轴数口径**（SKILL 声明 = gates 表行 = 配方 `fixed.qa` = pick.mjs 标签）；**deliverables 路径根**；**试用卡完整性**（compat / 撞 id / `source.urls` + `evidence`）；**选路留痕**（`fit` / `research` 一致性与试用引用可解析）。不一致退出码 1。加卡/禁卡、改配方字段、动 proposals 后必跑；`--root <dir>` 可对别的目录树跑（坏例自测用）。
 - `decks/*.json` — world / hook / transition / caption / sound / rhythm 牌组（含 banned 对照卡）。
 - `decks/proposals/_TEMPLATE.world.json` — 试用卡模板（L1.5）：联网找来的新表达先落在这里，必带 `compat` 与 `source` 证据，不给 `--deck` 就不可见不可达。

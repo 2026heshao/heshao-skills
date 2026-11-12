@@ -1,5 +1,22 @@
 # Changelog
 
+## v2.6.1 — 2026-11-12
+
+`--preflight` 从"只查浏览器/ffmpeg/页面"扩成完整工具链体检，给拿到技能包的其他人用。
+
+### 新增
+
+- `scripts/render.mjs --preflight` 增加：Node 版本（需 22+，逐帧渲染用内置 WebSocket）、Python 解释器（`PROMO_PYTHON` → `python` / `python3` / `py`）、Python 版本（需 3.10+）与 numpy / scipy / Pillow / edge-tts 四个包的版本。
+- 缺包时直接打印该解释器下的 `pip install` 命令；缺 `edge-tts` 额外提示需要联网。缺任一项退出码 1，不再出现"preflight 说齐备、跑到 Phase 4 才抛 ModuleNotFoundError"。
+- ffmpeg 两个 H.264 编码器都没有时，preflight 现在直接判失败（以前只打印一行警告仍退出 0）。
+- 新增 `scripts/tests/test_preflight.py`（3 用例）：报告完整性、缺 Python 必须非零退出、`PROMO_PYTHON` 指错时回退到 python/python3。
+
+### 验证
+
+- `node scripts/render.mjs --preflight`：本机输出 Node 24.19.0 / Python 3.12.6 / numpy 2.4.4 / scipy 1.18.1 / Pillow 12.2.0 / edge-tts 7.3.1，页面缺失走"技能目录不是项目根"提示并退出 0。
+- 反向自测（证明闸门会变红）：清空 `PATH` + `PROMO_PYTHON` 指向不存在路径 → `Python ❌`、退出 1；`PROMO_PYTHON` 指向空 venv → 四个包全 ❌ 并给出 pip 命令、退出 1。
+- `python -m unittest discover -s scripts/tests -p "test_*.py"`：55 用例全绿（19.9s）。
+
 ## v2.6.0 — 2026-11-12
 
 把两条并行演进的线合并成一条：store 侧的 v2.3–v2.5（案例、13 套世界、渲染与音频修复、Seedance 子技能）并入仓库侧未发布的 v2.2.0「产品画像 / 试用卡」工作。牌组、权重、兼容矩阵与既有配方的 `picks` 未改，`deckFingerprint` 保持 `084c84003bdc`。

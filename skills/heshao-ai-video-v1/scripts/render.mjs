@@ -143,29 +143,103 @@ function resolveBrowser() {
 const FF_INFO = resolveFFmpeg();
 const FF = FF_INFO ? FF_INFO.bin : null;
 const BROWSER = resolveBrowser();
+const HAS_NVENC = FF_INFO ? /\bh264_nvenc\b/.test(FF_INFO.encoders) : false;
+const HAS_X264 = FF_INFO ? /\blibx264\b/.test(FF_INFO.encoders) : false;
+const NODE_MAJOR = Number(String(process.versions.node).split(".")[0]);
+const NODE_OK = NODE_MAJOR >= 22;
+
+/* ---------------- Python 侧探测（仅 preflight 会真正跑） ---------------- */
+/* 逐帧渲染只靠 Node，但旁白/音效/QA 全在 Python 侧：缺 numpy 之类以前要跑到 Phase 4
+   才炸，而且是裸 ModuleNotFoundError。这里一次问清版本与四个包，缺什么给可执行的 pip 命令。 */
+const PY_DEPS = [
+  ["numpy", "numpy"],
+  ["scipy", "scipy"],
+  ["PIL", "pillow"],
+  ["edge_tts", "edge-tts"],
+];
+const PY_PROBE = [
+  "import json, sys",
+  'out = {"exe": sys.executable, "version": "%d.%d.%d" % sys.version_info[:3], "modules": {}}',
+  'for name in ("numpy", "scipy", "PIL", "edge_tts"):',
+  "    try:",
+  "        m = __import__(name)",
+  '        out["modules"][name] = getattr(m, "__version__", "ok")',
+  "    except Exception:",
+  '        out["modules"][name] = None',
+  'print("__PROMO_PY__" + json.dumps(out))',
+].join("\n");
+
+let PY_CACHE;
+function resolvePython() {
+  if (PY_CACHE !== undefined) return PY_CACHE;
+  PY_CACHE = null;
+  // py 是 Windows 启动器；macOS/Linux 一般是 python3。PROMO_PYTHON 只提高优先级，不是硬覆盖。
+  const cands = [process.env.PROMO_PYTHON, "python", "python3", "py"].filter(Boolean);
+  for (const c of cands) {
+    let r;
+    try {
+      r = spawnSync(c, ["-c", PY_PROBE], { encoding: "utf8", timeout: 30000, maxBuffer: 1 << 20, windowsHide: true });
+    } catch { continue; }
+    if (!r || r.status !== 0) continue;
+    const m = /__PROMO_PY__(\{[\s\S]*\})\s*$/.exec(String(r.stdout || ""));
+    if (!m) continue;
+    try {
+      PY_CACHE = { bin: c, ...JSON.parse(m[1]) };
+      return PY_CACHE;
+    } catch { /* 输出不是预期 JSON，继续试下一个解释器 */ }
+  }
+  return PY_CACHE;
+}
+
+function pythonReport() {
+  const lines = [];
+  const py = resolvePython();
+  if (!py) {
+    lines.push("Python  ❌ 未找到 —— 用 PROMO_PYTHON 指向 python.exe（macOS/Linux 一般是 python3）");
+    lines.push("        ❌ 旁白/音效/QA 需要 Python；只截帧不需要");
+    return { lines, ok: false };
+  }
+  const [maj, min] = String(py.version).split(".").map(Number);
+  const verOk = maj > 3 || (maj === 3 && min >= 10);
+  lines.push(`Python  ${py.version}${verOk ? "" : "  ❌ 需要 3.10+（SKILL 声明 3.12+）"}  ${py.exe}`);
+  const mods = py.modules || {};
+  const cells = PY_DEPS.map(([key, pip]) =>
+    `${pip === "pillow" ? "Pillow" : pip} ${mods[key] ? mods[key] + " ✅" : "❌"}`);
+  lines.push("        " + cells.join("  "));
+  const miss = PY_DEPS.filter(([key]) => !mods[key]).map(([, pip]) => pip);
+  if (miss.length) {
+    lines.push(`        ❌ 缺 ${miss.join(" ")} —— ${py.exe} -m pip install ${miss.join(" ")}`);
+    if (miss.includes("edge-tts")) lines.push("        （edge-tts 生成旁白还需要联网）");
+  }
+  if (!verOk) lines.push("        ❌ Python 版本过低，numpy 2.x 与现有脚本可能装不上；请装 3.12+");
+  return { lines, ok: verOk && miss.length === 0 };
+}
 
 function toolchainReport() {
   const lines = [];
+  lines.push(`Node    ${process.versions.node}${NODE_OK ? "  ✅" : "  ❌ 需要 22+（逐帧渲染用内置 WebSocket）"}`);
   lines.push(`浏览器  ${BROWSER || "❌ 未找到 —— 用 --edge <msedge.exe/chrome.exe 路径> 或设 PROMO_EDGE"}`);
   lines.push(`ffmpeg  ${FF || "❌ 未找到 —— 用 --ffmpeg <路径> 或设 PROMO_FFMPEG（系统 PATH 里也没有）"}`);
   if (FF) {
     const v = (/ffmpeg version (\S+)/.exec(spawnSync(FF, ["-version"], { encoding: "utf8" }).stdout || "") || [])[1] || "?";
-    const nvenc = /\bh264_nvenc\b/.test(FF_INFO.encoders);
-    const x264 = /\blibx264\b/.test(FF_INFO.encoders);
-    lines.push(`        版本 ${v}  编码器 h264_nvenc=${nvenc ? "有" : "无"} libx264=${x264 ? "有" : "无"} aac=${/\baac\b/.test(FF_INFO.encoders) ? "有" : "无"}`);
-    if (!nvenc && !x264) lines.push("        ❌ 两个 H.264 编码器都没有，无法出成片");
+    lines.push(`        版本 ${v}  编码器 h264_nvenc=${HAS_NVENC ? "有" : "无"} libx264=${HAS_X264 ? "有" : "无"} aac=${/\baac\b/.test(FF_INFO.encoders) ? "有" : "无"}`);
+    if (!HAS_NVENC && !HAS_X264) lines.push("        ❌ 两个 H.264 编码器都没有，无法出成片");
   }
+  const py = pythonReport();
+  lines.push(...py.lines);
   lines.push(`页面    ${existsSync(PAGE) ? PAGE : "❌ 找不到 " + PAGE}`);
   lines.push(`根目录  ${ROOT}`);
   lines.push(`帧目录  ${FRAMES}`);
   lines.push(`成片    ${OUT}`);
-  return lines;
+  return { lines, pythonOk: py.ok };
 }
 
 if (PREFLIGHT) {
   console.log("render.mjs preflight");
-  for (const l of toolchainReport()) console.log("  " + l);
-  const toolsOk = Boolean(BROWSER && FF);
+  const rep = toolchainReport();
+  for (const l of rep.lines) console.log("  " + l);
+  const encOk = Boolean(FF) && (HAS_NVENC || HAS_X264);
+  const toolsOk = NODE_OK && Boolean(BROWSER) && encOk && rep.pythonOk;
   const pageOk = existsSync(PAGE);
   const rootExplicit = argv.includes("--root") || argv.includes("--html");
   if (toolsOk && !pageOk && !rootExplicit) {
@@ -174,7 +248,7 @@ if (PREFLIGHT) {
     process.exit(0);
   }
   if (!toolsOk) {
-    console.log("\n❌ 工具链不全：先补浏览器/ffmpeg，再用 --root 指向项目。");
+    console.log("\n❌ 工具链不全：按上面 ❌ 逐项补齐（Node 22+ / 浏览器 / ffmpeg 编码器 / Python 四个包），再用 --root 指向项目。");
     process.exit(1);
   }
   if (!pageOk) {
