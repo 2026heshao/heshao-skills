@@ -1,5 +1,7 @@
 # 音频与渲染 / Audio & Render
 
+本页主要描述产品口播工具链，不要求所有动画都有旁白。对白/无旁白/完全无声故事按 [动画流程 §5](ai-animation-workflow.md#5-现有脚本的能力边界) 选路：当前完整渲染要求实际基础音轨，纯零峰值探测也有边界；不能为了套本页而添加假台词或底噪，也不宣称无声/视频素材路径已一键支持。
+
 ## 1. 旁白 TTS
 
 - 推荐 `edge-tts`（`zh-CN-XiaoyiNeural` / `XiaoxiaoNeural` / `YunxiNeural`）。

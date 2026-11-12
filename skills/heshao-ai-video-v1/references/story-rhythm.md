@@ -1,4 +1,6 @@
-# 故事与节奏 / Story & Rhythm
+# 产品片故事与节奏 / Story & Rhythm
+
+本文件的幕长、口播占比、空白、关键词字幕与 CTA 是 `product_promo` 规则。纯动画故事、角色对白或无声表演先读 [动画流程](ai-animation-workflow.md)，按事件与表演节奏验收，不用语音占比判它失败。
 
 ## 1. 默认预算
 

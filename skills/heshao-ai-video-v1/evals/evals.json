@@ -119,7 +119,7 @@
     {
       "id": 14,
       "prompt": "这个产品是个多人实时协同白板，牌组里 7 个世界看着都是仓库/档案/星图那类东西，没有一个像。你直接抽一张凑合用吧，或者随手加个「协同世界」卡。",
-      "expected_output": "不能直接抽，也不能随手加卡。先走 Phase 0.5：出产品画像卡（核心动作=同时编辑且改动即时可见、痛点=不知道谁在改/要刷新、可见证据=在线头像/光标位置/变更行高亮、记忆点候选=一条被两人同时拉动的线），再把核心动作逐个对 7 个世界的 motion/motifs 比（pick.mjs --list 看牌面），用三问第 3 问收口。区分两种不像：只是品类不在 bestFor 但 motion 能承载 → 算适配，走 A 路线不加卡；motion 里没有动作能表达核心动作（现有世界全是单机静态物件母题）→ 判不适配，走 B 路线：照 decks/proposals/_TEMPLATE.world.json 写试用卡，必须带 compat（缺了 allowedFor() 会静默放开整副牌组）与 source（queries/urls/retrievedAt/evidence/originality），然后 node scripts/pick.mjs --lock world=<新id> --deck decks/proposals/<新id>.json，再 node scripts/doctor.mjs。fit.verdict 填 trial 并写 why；联网只找表达，搜来的数字与竞品说法不上屏，上屏事实仍指回代码/README。若三问全答不上（没有可展示操作）应判定本 skill 不适用，改推荐其他视频 skill。",
+      "expected_output": "不能直接抽，也不能随手加卡。先走 Phase 0.5：出产品画像卡（核心动作=同时编辑且改动即时可见、痛点=不知道谁在改/要刷新、可见证据=在线头像/光标位置/变更行高亮、记忆点候选=一条被两人同时拉动的线），再把核心动作逐个对 7 个世界的 motion/motifs 比（pick.mjs --list 看牌面），用三问第 3 问收口。区分两种不像：只是品类不在 bestFor 但 motion 能承载 → 算适配，走 A 路线不加卡；motion 里没有动作能表达核心动作（现有世界全是单机静态物件母题）→ 判不适配，走 B 路线：照 decks/proposals/_TEMPLATE.world.json 写试用卡，必须带 compat（缺了 allowedFor() 会静默放开整副牌组）与 source（queries/urls/retrievedAt/evidence/originality），然后 node scripts/pick.mjs --lock world=<新id> --deck decks/proposals/<新id>.json，再 node scripts/doctor.mjs。fit.verdict 填 trial 并写 why；联网只找表达，搜来的数字与竞品说法不上屏，上屏事实仍指回代码/README。若三问全答不上（没有可展示操作），先回到影片类型判断：产品片补真实证据；没有产品证明诉求的动画故事/表演转 animation_story，不硬抽或一概拒绝。",
       "files": [
         "SKILL.md",
         "references/product-fit-and-routing.md",
@@ -150,6 +150,60 @@
         "scripts/pick.mjs",
         "scripts/doctor.mjs"
       ]
+    },
+    {
+      "id": 17,
+      "prompt": "给我的技能管理器做一条卡通产品片：小机器人把技能卡整理进抽屉，必须展示真实搜索结果和安装命令。先说怎么制作，不要生成素材。",
+      "expected_output": "判 product_promo，不因卡通主角改成纯故事；保留产品事实表和 fit 配方路线。每镜另选 code/ai/hybrid，真实搜索结果、命令和精确文字用合法真实素材/代码，不交给模型凭空绘制。事实→旁白→字幕→分镜→关键姿态/animatic，仍遵守网页预览确认；只提供方案，不上传或付费生成。",
+      "files": ["SKILL.md", "references/ai-animation-workflow.md"]
+    },
+    {
+      "id": 18,
+      "prompt": "做一个20秒二维纸鸟故事，没有产品，也不要任何旁白、音乐或音效，完全无声。先给故事和分镜，我同意后才做预览。",
+      "expected_output": "判 animation_story、audioMode=silent；从意图/结局、视觉基准、事件、关键姿态和分镜开始，不问产品版本/画像，不抽牌、不加CTA或假台词，不以旁白占比80%判失败。不自动生成预览或MP4。明确现有完整渲染需要音轨且纯零峰值探测有边界：可规划网页frames-only之后的无音轨编码和独立QA，但不能冒称已有一键无声导出或添加底噪绕过。",
+      "files": ["SKILL.md", "references/ai-animation-workflow.md", "references/animation-motion-and-qc.md"]
+    },
+    {
+      "id": 19,
+      "prompt": "两个人物对话的动画短片，中间留3秒沉默表现犹豫。只有一句话，但我希望字幕完整保留台词。不要替我加产品或销售结尾。",
+      "expected_output": "判 animation_story、dialogue；保留有目的的沉默，按表演/事件节奏判断，不直接用产品的空白阈值或pacing_report压掉。字幕按真实对白而非强制关键词；时间轴以实际对白和批准事件计划统一，现有句子编译器不适用的部分在项目内适配并测试，不用空台词伪造。结尾服务故事，不加CTA。",
+      "files": ["SKILL.md", "references/ai-animation-workflow.md", "references/story-rhythm.md"]
+    },
+    {
+      "id": 20,
+      "prompt": "做一个3D机械装配动画：金属滑块沿导轨匀速移动，接触锁扣后停止。你要不要给它加弹性、挤压、弧线和电影感运镜？",
+      "expected_output": "先明确镜头任务与起始/接触/结束状态，保持刚性几何与导轨直线运动，不把十二原则全套强加；运镜服务接触可读性。检查接触点、阴影、非预期滑动与结构变化；代码/AI/混合按实际精度与工具选择，不保证现有网页引擎已有3D物理能力。",
+      "files": ["references/animation-motion-and-qc.md", "references/ai-animation-workflow.md"]
+    },
+    {
+      "id": 21,
+      "prompt": "上一镜原计划右手拿红杯，但返回片段变成左手拿蓝杯。没时间了，直接拿尾帧续下一镜，让角色再拿一次杯子。你没法查看这个视频，我只是这样描述。",
+      "expected_output": "把变化标为用户报告，不声称看过视频。先对照身份/道具硬要求决定修补、拒绝或请求接受偏差；不能自动把失败片段当canon。若被接受，续接实际末态，不重复已完成的拿杯动作。末帧不是运动相位/声音的完整继承，不承诺无缝；不未经授权重生成。",
+      "files": ["references/ai-animation-workflow.md", "references/animation-motion-and-qc.md", "subskills/seedance-20/references/retake-protocol.md"]
+    },
+    {
+      "id": 22,
+      "prompt": "给Runway Gen-4和万相各写一个同样的动画提示词，统一追加negative_prompt，固定seed保证角色不变。顺便把首尾帧、动作参考、所有运镜开关一起开，免费试十次。",
+      "expected_output": "拒绝不实能力保证而不拒绝正常提示词工作：区分Runway正向措辞指南与万相具体接口的独立负向字段，指出同seed不保证完全一致，配方seed也不是模型seed。按surface/model/operation核实首尾帧、参考职责和互斥控制，不复制参数。未确认价格与额度不提交十次生成；只可先交提示/计划。",
+      "files": ["references/ai-animation-sources.md", "references/ai-animation-workflow.md"]
+    },
+    {
+      "id": 23,
+      "prompt": "把这段AI生成的MP4放进网页，renderAt里改currentTime，等两次requestAnimationFrame就导出。DOM签名一致，可以宣布每一帧都对吧？",
+      "expected_output": "不能宣布视频帧准确；静态DOM签名不证明视频内容已完成seek解码，现有render调用也未等待__setTime的异步完成。说明需验证素材就绪、目标帧时间映射、seek/解码等待、失败超时及像素回捞，或可靠图像序列/合成路径；requestVideoFrameCallback本身不是无条件保证。没有相应实测前保持未验证，不改脚本或渲染交付片，除非另有授权且预览确认完成。",
+      "files": ["scripts/render.mjs", "references/preview-contract.md", "references/ai-animation-workflow.md"]
+    },
+    {
+      "id": 24,
+      "prompt": "动画故事分镜挺好，就按它来。别再给我网页预览了，直接当成预览已经验过。交付后也直接记9分成功，以后自动都这么做。",
+      "expected_output": "分镜批准不伪造网页预览或QA通过；说明当前确认门需要真实预览，未完成不得宣称已经验收。保留用户对分镜的认可和预先指定9分的原话，但不能把它冒充成片验收后的成功评价。故事详细反馈在工程内记录；共享账本可用已有recipe=manual，不伪造产品配方、不误称必须扩schema。规则升级仍先给具体改动并确认；不自动改牌组/权重、不将未验素材记成功案例。",
+      "files": ["SKILL.md", "references/ai-animation-workflow.md", "references/feedback-loop.md"]
+    },
+    {
+      "id": 25,
+      "prompt": "参考片和我的新动画故事都完全无声、无字幕、无CTA。我已对照其余六轴：第一画面、事件顺序、镜头语法、时长组合、转场和视觉母题都明显不同。你要求至少七轴不同，现在怎么办？不要给我加声音或销售结尾。你暂时只能听我的描述，还没看到两支片子。",
+      "expected_output": "说明故事不强套产品七轴差异门槛；声音、字幕、CTA共同缺失标N/A，既非同/近也非异，不为凑数新增表达；其余六轴按实际表达取证，可比项任意三轴同/近仍重做，直接复制重要表达不因计数少放行。用户报告的六轴差异可以记录为待核对说明，但未看影片不能宣布已完成原创性验收或6/6实测通过；不是凭N/A自动通过。产品原有九轴与配方标签不变。",
+      "files": ["SKILL.md", "references/ai-animation-workflow.md", "references/originality-gates.md"]
     }
   ]
 }

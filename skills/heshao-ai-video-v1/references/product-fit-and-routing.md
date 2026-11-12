@@ -1,6 +1,7 @@
 # 产品适配与抽卡选路 / Product Fit & Routing
 
 Phase 0.5 的手册：**先看清目标产品，再决定去哪儿抽卡。**
+范围仅限 `product_promo`；纯动画故事/表演走 [动画流程](ai-animation-workflow.md)，不因没有产品操作而被拒绝，也不伪造画像和 `fit`。代码/AI/混合制作的选择不是本页 local/trial/handmade 配方路线。
 
 这一步存在的理由是一条代码事实：`bestFor` 在 `decks/worlds.json` 里写了 7 处，`scripts/` 里 0 处引用。`pick.mjs` 不知道你的产品是什么，它对"这个牌组贴不贴"完全无感——你问它要配方，它就在牌组内给你一组**方法自洽但可能贴错产品**的组合。错配不会报错，只会在你画到分镜、写完旁白之后才暴露，代价是整支重做。
 
@@ -37,7 +38,7 @@ filled example（示例产品，非真实数据）：
 | 品类名不在 `bestFor` 里，但 `motion` 能承载核心动作 | **算适配** | 路线 A，别加卡；在 `fit.reason` 写为什么能借 |
 | `motion` 里没有任何动作能表达核心动作 | **不适配** | 路线 B，出试用卡 |
 | 你已经明确知道要哪几个轴的组合 | 与适配无关 | 路线 C，手写 + `--validate` |
-| 三问一个都答不上（没有可展示的真实操作、没有能上屏的事实） | 不适用本 skill | 停手，换 `beatra-ai-video-studio` / `video-shotcraft` |
+| 三问一个都答不上（没有可展示的真实操作、没有能上屏的事实） | 暂不进入产品抽牌 | 回主 SKILL §1：产品片先补事实；纯动画故事/表演转 S0–S6，不伪造产品画像 |
 
 真例（可查）：atlas「星图台」的 `bestFor` 是 capability map / discovery / tool library / skill manager，与 depot 在"工具库、技能管理"上**重叠**，但 2026-11-04 那支过闸——原因不是名字新，而是镜头语法、转场、字幕、声音、CTA 全换了一套（`references/case-dsh-armory-atlas.md` §2）。
 

@@ -1,6 +1,7 @@
 # 交付后反馈与自更新 / Feedback & Self-Update
 
 目标：让 skill 越用越顺手，但不被一次性的偏好带偏。
+范围：3+1 回访、规则升级与共享经验账本可用于两条影片路线。产品用真实 recipe；无产品配方的故事使用脚本已有的 `--recipe manual`（省略也默认 manual），不伪造配方。故事镜头/素材/QA 详情留在影片工程，见 [动画流程](ai-animation-workflow.md)；共享账本只存评价与经验摘要。分镜认可或提前指定的分数不能记作已验收成片的成功评价。
 
 核心原则：**单次反馈只写案例，重复出现或用户明确要求才升级为规则；规则改动必须人工确认。** 这是 Warp 的 inner/outer skill、Claude Code 的 `/reflect` 置信度分级、Addy Osmani 的 patterns/gotchas 共同做法。
 
