@@ -1,5 +1,33 @@
 # Changelog
 
+## v2.7.1 — 2026-11-12
+
+实测「完全无声成片」导出链路时发现两处缺陷，修掉并补回归测试。不改渲染契约、不动牌组/权重/配方，也没让无声片子走混音链路。
+
+### 修复
+
+- `scripts/qa_mp4.py`：无音轨 MP4 在峰值判定处崩 `TypeError`（`peak` 为 `None` 却参与 `:.2f` 格式化），整份报告只剩堆栈。新增 `is_silent()` / `audio_checks()` / `report()`：无音频流或 0 秒音轨时，音频三项合并打印 `N/A`，画面/容器/帧数照常判定；有音频流但 astats 没给峰值时判失败并写明"未测得"。`info()` 顺带把无音频流的显示从 `?` 改成 `无音轨`（原来无法区分"没有音轨"和"解析失败"）。
+- `scripts/render.mjs`：`window.PROMO.voice` 为空时，混音输入退化成工程目录，只报 `Error opening input file <工程目录>`，看着像路径写错。新增 `requireBaseTrack()`，直接说明"本工程没有基础音轨"并指回 `references/ai-animation-workflow.md §5` 的无声选路，退出码仍为 1。
+- `scripts/tests/test_qa_mp4.py`：新增 6 个用例——无音频流记 N/A、0 秒音轨记 N/A、正常片仍判 PASS、削顶与热峰值算失败、音频短于成片算失败、有音频流但峰值未测得算失败且不抛异常。
+
+### 无声导出实测
+
+- 最小确定性工程 2.00s / 60 帧 / 30fps / 1440×1080：`--frames-only` → `ffmpeg -framerate 30 -i f%05d.png -c:v h264_nvenc -pix_fmt yuv420p -an`（本机 ffmpeg 19.6.0，只有 `h264_nvenc`，无 `libx264`）。
+- 成片 105,746 B；`ffmpeg -i` 只有 `Stream #0:0 Video`，无 Audio 流；回捞 60/60 帧，逐帧 MAD 0.974–1.367（均值 1.042），MAD>2.0 的帧 0。
+- 修补后 `qa_mp4.py` 对该成片输出 `PASS`（音频项 N/A）；`render.mjs --audio-only` 退出 1 并给出上文可读理由。
+
+### 边界（不要外推）
+
+- 仍**没有一键无声导出命令**：取帧之后编码那一步要自己调 ffmpeg，命令与验收口径见 `references/ai-animation-workflow.md §5`。
+- 未覆盖：大素材（视频/字体/大图）加载时序、`libx264` 回退路径、带音轨但纯静音的工程、真实影片工程（≥20s、多镜头、重素材）。
+- 实测用的是合成最小工程，验证的是导出链路，不代表动画质量。
+
+### 验证
+
+- `python -m pytest scripts/tests -q`：61 用例通过（16.03s，原 55 + 新增 6）。
+- `node scripts/render.mjs --preflight`：本机 Node 22.22.2 / Edge / ffmpeg 19.6.0 / Python 3.12 四包齐备。
+- `node scripts/doctor.mjs`：PASS，9 个旧配方缺 `fit` 的历史 WARN 不变。
+
 ## v2.7.0 — 2026-11-12
 
 用户先要求联网研究、补充前确认，随后明确选择“同时纳入纯动画故事”。本版补方法与路由，不新增模型后端或视频素材渲染实现。

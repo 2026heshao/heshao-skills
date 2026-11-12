@@ -91,5 +91,49 @@ class TestEnvelopeOffset(unittest.TestCase):
             qa.envelope_offset(self._env(120), self._env(120, n=300))
 
 
+class TestSilentVerdict(unittest.TestCase):
+    """无音轨成片的判定：记 N/A，既不能崩，也不能冒充 PASS。
+
+    这是实测踩到的：完全无声 MP4 跑到 peak 判定时 f-string 拿到 None 抛 TypeError，
+    整份报告只剩崩溃。无声交付因此拿不到任何 QA 结论。
+    """
+
+    def test_no_audio_stream_is_na(self):
+        i = {"has_audio": False}
+        a = {"peak": None, "rms": None, "clips": 0, "seconds": 0.0}
+        rows = qa.audio_checks(i, a, 2.0)
+        self.assertEqual(len(rows), 1, "无音轨时音频三项合成一条 N/A")
+        self.assertIsNone(rows[0][0], "无音轨是 N/A，不是 False，更不是 True")
+
+    def test_empty_audio_stream_is_na(self):
+        """有音频流但解不出样本（0 秒）同样算无声。"""
+        i = {"has_audio": True}
+        a = {"peak": None, "rms": None, "clips": 0, "seconds": 0.0}
+        self.assertEqual([r[0] for r in qa.audio_checks(i, a, 2.0)], [None])
+
+    def test_normal_film_still_judged(self):
+        i = {"has_audio": True}
+        a = {"peak": -3.02, "rms": -20.38, "clips": 0, "seconds": 2.0}
+        self.assertEqual([r[0] for r in qa.audio_checks(i, a, 2.0)], [True, True, True])
+
+    def test_clipping_and_hot_peak_fail(self):
+        i = {"has_audio": True}
+        a = {"peak": 0.5, "rms": -6.0, "clips": 12, "seconds": 2.0}
+        self.assertEqual([r[0] for r in qa.audio_checks(i, a, 2.0)], [True, False, False])
+
+    def test_short_audio_fails_coverage(self):
+        i = {"has_audio": True}
+        a = {"peak": -3.0, "rms": -20.0, "clips": 0, "seconds": 1.0}
+        self.assertFalse(qa.audio_checks(i, a, 2.0)[0][0])
+
+    def test_peak_none_with_audio_fails_without_crash(self):
+        """有音频流但 astats 没给峰值：判失败并说清楚，不抛 TypeError。"""
+        i = {"has_audio": True}
+        a = {"peak": None, "rms": None, "clips": 0, "seconds": 2.0}
+        rows = qa.audio_checks(i, a, 2.0)
+        self.assertFalse(rows[2][0])
+        self.assertIn("未测得", rows[2][1])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

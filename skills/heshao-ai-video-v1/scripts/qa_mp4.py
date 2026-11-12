@@ -71,7 +71,8 @@ def info(mp4: Path):
         "size": v.group(2) if v else "?",
         "codec": v.group(1) if v else "?",
         "fps": float(v.group(3)) if v else None,
-        "audio": f"{a.group(1)} {a.group(2)}Hz {a.group(3)} {a.group(4)}kb/s" if a else "?",
+        "has_audio": bool(a),
+        "audio": f"{a.group(1)} {a.group(2)}Hz {a.group(3)} {a.group(4)}kb/s" if a else "无音轨",
     }
 
 
@@ -104,6 +105,40 @@ def audio_stats(mp4: Path) -> dict:
         "clips": int((np.abs(x) >= 0.999).sum()),
         "seconds": len(x) / 48000,
     }
+
+
+def is_silent(info_dict: dict, audio: dict) -> bool:
+    """成片没有可测音轨：容器里没有音频流，或音频流解不出样本。"""
+    return (not info_dict.get("has_audio", True)) or audio["seconds"] <= 1e-9
+
+
+def audio_checks(info_dict: dict, audio: dict, dur_expect: float) -> list:
+    """音频判定表。无音轨返回 [None]，记 N/A —— 不能崩，也不能当 PASS。
+
+    历史问题：无音轨时 peak 为 None，f-string 在 chk() 之前求值就抛 TypeError，
+    无声成片拿不到完整报告；有音轨的片子不受影响，所以一直没被发现。
+    """
+    if is_silent(info_dict, audio):
+        return [(None, "audio N/A：成片无音轨（完全无声按无声路径验收，不判覆盖/削顶/峰值）")]
+    peak, rms = audio.get("peak"), audio.get("rms")
+    return [
+        (audio["seconds"] >= dur_expect - 0.05,
+         f"audio {audio['seconds']:.3f}s covers {dur_expect:.3f}s"),
+        (audio["clips"] == 0,
+         f"clipping samples {audio['clips']} (stereo per-channel)"),
+        (peak is not None and peak <= 0.0,
+         f"peak {peak:.2f} dBFS / RMS {rms:.2f} dBFS" if peak is not None
+         else "peak 未测得（astats 无输出）：不能判 PASS"),
+    ]
+
+
+def report(rows) -> None:
+    """打印判定表：None = N/A，既不计通过也不计失败。"""
+    for ok, msg in rows:
+        if ok is None:
+            print("  ..  N/A " + msg)
+        else:
+            chk(ok, msg)
 
 
 def read_wav_mono(path: Path) -> tuple[np.ndarray, int]:
@@ -278,10 +313,7 @@ def main() -> None:
         chk(abs(n - n_expect) <= 1, f"frames {n} == {n_expect}")
         chk(abs((i["seconds"] or 0) - dur_expect) <= 1 / fps_meta + 0.02,
             f"container {i['seconds']}s == {dur_expect:.4f}s")
-        chk(a["seconds"] >= dur_expect - 0.05, f"audio {a['seconds']:.3f}s covers {dur_expect:.3f}s")
-    chk(a["clips"] == 0, f"clipping samples {a['clips']} (stereo per-channel)")
-    chk(a["peak"] is not None and a["peak"] <= 0.0,
-        f"peak {a['peak']:.2f} dBFS / RMS {a['rms']:.2f} dBFS")
+    report(audio_checks(i, a, dur_expect if n_expect else 0.0))
 
     off = av_offset(mp4, Path(args.audio_check) if args.audio_check else (mp4.parent / "audio-check.wav"))
     if off is not None:

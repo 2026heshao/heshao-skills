@@ -556,7 +556,21 @@ function mixPeak(M, durSec) {
   return Math.max(...p) - 20 * Math.log10(PROBE_TRIM);
 }
 
+/* 无声工程的拒绝理由：voice 为空时 audioGraph 的输入会退化成工程目录，
+ * ffmpeg 只报 "Error opening input file <工程目录>"，看着像路径写错。
+ * 完全无声的成片不该走混音链路，也不该让人靠猜错误码。 */
+function requireBaseTrack(M) {
+  const v = String((M && M.audio && M.audio.voice) || "").trim();
+  if (!v) {
+    throw new Error(
+      "本工程没有基础音轨（window.PROMO.voice 为空）：完全无声请走 --frames-only，" +
+      "再用 ffmpeg 无音轨编码（-an），选法与验收见 references/ai-animation-workflow.md §5；" +
+      "有对白/音乐/音效时把实际资产接进 voice/sfxDir");
+  }
+}
+
 async function prepareAudio(M) {
+  requireBaseTrack(M);
   const durSec = (Math.round(M.total * M.fps) / M.fps).toFixed(4);
   const raw = mixPeak(M, durSec);
   const master = raw > TARGET_PEAK_DB
