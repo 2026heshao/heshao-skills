@@ -29,3 +29,6 @@ Thumbs.db
 # skill 测试与 QA 的临时产物（跑测试会重建，不入库）
 skills/heshao-ai-video-v1/scripts/tests/_tmp_qa/
 skills/heshao-ai-video-v1/scripts/tests/fixture/out/
+
+# 双轴审查证据（含本机绝对路径与改前备份 zip）：只留本地，存仓库外 _review/
+skills/*/reports/
