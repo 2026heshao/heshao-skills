@@ -65,6 +65,9 @@ window.PROMO = {
 ## 3. 纯函数
 
 ```js
+// 舞台层共享件必须一起进签名，否则「跨幕泄漏」这一类 bug 测不出来
+const roots = [scenes[ai].root, R.cap, R.hud, R.foot, R.fade, R.dim];
+
 function renderAt(t) {
   t = clamp(t, 0, P.dur);
   const ai = activeScene(t);
@@ -91,6 +94,7 @@ function renderAt(t) {
 - 不用 CSS `transition` / `@keyframes` 做正片动画；所有 opacity/transform/clip-path 由 JS 写。
 - 场景容器可以 `display:none` 隐藏；不要靠累积 opacity。
 - 文本内容可以每帧写，但必须由 `t` 推导（如命令逐字、计数）。
+- **挂在 `#stage` 而不是 `.scene` 的共享元素必须在 `renderAt(t)` 开头复位**（调暗层、全局遮罩、颗粒层、字幕、HUD、脚注、淡入淡出），再由当前幕点亮。不复位的后果是顺序渲染会继承上一幕的状态、单帧 seek 不会 —— 两条路径必然对不上，而且只有逐帧回捞抓得到。2026-11-05 skilllocker 实测：S03 把 `.dim` 设到 0.20 后没人复位，落版被压灰 20%，代价是重渲 1322 帧。
 
 ### 验收：0→t 逐帧 vs 直接 seek
 
@@ -194,5 +198,6 @@ window.__setTime = (t) => { lastT = t; renderAt(t); };
 - [ ] 播放/暂停/拖拽/重播/倍速/字幕/静音/音量/全屏/章节/抽屉
 - [ ] 纯函数 seek 签名一致
 - [ ] 关键帧接触表：文字不溢出、不挡主体、无空镜
+- [ ] 舞台层共享件（调暗 / 遮罩 / 颗粒）已在 `renderAt` 开头复位，且已列入 `signature()` 的元素清单
 - [ ] 首屏 poster 不是黑帧；点播放从 0 开始
 - [ ] 资源版本号已 bump

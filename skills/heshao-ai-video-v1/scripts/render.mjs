@@ -15,6 +15,7 @@
  *   node scripts/render.mjs --audio-only         # 只产 audio-check.wav + 峰值报告
  *   node scripts/render.mjs --encode-only        # 只用 meta 合成，不再开浏览器
  *   node scripts/render.mjs --from 34 --to 41 --keep   # 只截一段调试并保留 PNG
+ *   node scripts/render.mjs --help                     # 只打印用法（退出码 2，不开渲）
  *
  * 常用开关：
  *   --root <dir>        工程根目录，页面与素材都相对它解析（默认当前目录）
@@ -25,12 +26,16 @@
  *   --edge | --ffmpeg   显式指定二进制，绕过自动探测
  *   --encoder auto|nvenc|x264   默认 auto：有 h264_nvenc 就用，失败自动降级 libx264
  *   --width/--height    视口，默认 1440/1080（4:3 舞台）
+ *   --resume-anyway     帧目录已有 PNG 且输入指纹变了时，仍然复用旧帧续跑（默认拒绝）
+ *
+ * 未知参数一律打印用法并退出 2 —— 以前 --help 会被忽略，直接开渲整片并覆写出品。
  *
  * 只启动/结束自己拉起的 Edge（按 PID kill），不碰系统上其他浏览器进程。
  * 不用 ffprobe：元信息一律从 ffmpeg 自己的输出解析（很多精简构建不带 ffprobe）。
  */
 import { spawn, spawnSync } from "node:child_process";
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync, mkdirSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, writeFile, rm } from "node:fs/promises";
 import { tmpdir, homedir } from "node:os";
 import { join, resolve, isAbsolute } from "node:path";
@@ -41,12 +46,40 @@ const argv = process.argv.slice(2);
 const has = (k) => argv.includes("--" + k);
 const val = (k, d) => { const i = argv.indexOf("--" + k); return i >= 0 && !String(argv[i + 1] || "").startsWith("--") ? argv[i + 1] : d; };
 
+/* 参数白名单：未知 flag 以前会被静默忽略 —— 实测 `--help` 不打印用法，而是按默认参数
+   直接开渲 1322 帧并覆写 out/final/film.mp4。一次拼错就是 7 分钟 + 覆盖出品，
+   所以未知参数必须退出，且不能进入任何渲染分支。 */
+const KNOWN_FLAGS = ["preflight", "frames-only", "audio-only", "encode-only", "meta-only",
+  "keep", "help", "h", "resume-anyway", "root", "html", "out-dir", "frames-dir", "out",
+  "encoder", "width", "height", "from", "to", "force-stale-meta"];
+const VALUE_FLAGS = new Set(["root", "html", "out-dir", "frames-dir", "out", "edge", "ffmpeg",
+  "encoder", "width", "height", "from", "to"]);
+const unknown = [];
+for (let i = 0; i < argv.length; i++) {
+  const a = String(argv[i]);
+  if (!a.startsWith("--")) continue;
+  const name = a.slice(2);
+  if (!KNOWN_FLAGS.includes(name)) { unknown.push(a); continue; }
+  if (VALUE_FLAGS.has(name)) i++;   // 跳过它的取值，取值本身不算 flag
+}
+if (has("help") || has("h") || unknown.length) {
+  console.log(unknown.length
+    ? `未知参数：${unknown.join(" ")}\n（未知参数不会开始渲染 —— 以前 --help 会被忽略并直接开渲整片）\n`
+    : "");
+  console.log(`usage: node scripts/render.mjs [--preflight | --meta-only | --frames-only | --audio-only | --encode-only | --from <s> --to <s> --keep] [--resume-anyway]\n` +
+    `       --root <dir> --html preview.html --out-dir out/final --frames-dir out/frames --out film.mp4\n` +
+    `       --edge <exe> --ffmpeg <exe> --encoder auto|nvenc|x264 --width 1440 --height 1080\n` +
+    `默认（不带模式开关）= 全片：读 meta → 截帧 → 混音 → 编码。帧目录有旧帧且输入指纹不符时会拒绝续跑。`);
+  process.exit(2);
+}
+
 const FRAMES_ONLY = has("frames-only");
 const ENCODE_ONLY = has("encode-only");
 const AUDIO_ONLY = has("audio-only");
 const META_ONLY = has("meta-only");
 const KEEP_FRAMES = has("keep") || FRAMES_ONLY;   // 单截帧默认保留，方便人工看构图
 const PREFLIGHT = has("preflight");
+const RESUME_ANYWAY = has("resume-anyway");
 
 const ROOT = resolve(String(val("root", ".")));
 const PAGE = isAbsolute(String(val("html", "preview.html"))) ? String(val("html")) : resolve(ROOT, String(val("html", "preview.html")));
@@ -258,10 +291,62 @@ async function readMeta({ ev }) {
 
 async function writeMeta(M) {
   await mkdir(OUT_DIR, { recursive: true });
+  // 把输入指纹一起写进 meta：--encode-only / --audio-only 只读 meta.json，
+  // 没有它就会出现「timeline.js 改了、事件表还是旧的」的静默错混音。
+  M.srcFingerprint = inputFingerprint();
   await writeFile(META, JSON.stringify(M, null, 2));
 }
 
 /* ---------------- 2. 逐帧截图 ---------------- */
+/* 输入指纹：页面本身 + assets 下 js/css/json 的内容 + 其余素材（PNG/WAV）的 size+mtime + 视口。
+   「已存在的帧跳过」是断点续跑，但没有指纹就会把两个代码版本的帧混进同一部片子 ——
+   实测本轮确实复用了被中断进程留下的 388 帧，且完全无提示。 */
+function inputFingerprint() {
+  const h = createHash("sha256");
+  let page = "";
+  try { page = readFileSync(PAGE, "utf8"); } catch (e) { page = "<no-page>"; }
+  h.update(page);
+  h.update(`\nviewport=${WIDTH}x${HEIGHT}`);
+  const walk = (dir) => {
+    let ents = [];
+    try { ents = readdirSync(dir, { withFileTypes: true }); } catch (e) { return; }
+    for (const ent of ents) {
+      const p = join(dir, ent.name);
+      if (ent.isDirectory()) { walk(p); continue; }
+      const st = statSync(p);
+      if (/\.(js|css|json|html|vtt|srt|md)$/i.test(ent.name)) h.update(`\nF ${p}` + readFileSync(p));
+      else h.update(`\nM ${p} ${st.size} ${Math.round(st.mtimeMs)}`);
+    }
+  };
+  walk(join(ROOT, "assets"));
+  return h.digest("hex").slice(0, 16);
+}
+
+/* 帧目录守卫：放在开浏览器之前 —— 既省一次启动，也能被无浏览器单测覆盖。 */
+function guardFramesDir() {
+  const STAMP = join(FRAMES, "_stamp.json");
+  const fp = inputFingerprint();
+  let heldPng = 0;
+  try { heldPng = readdirSync(FRAMES).filter((f) => /^f\d{5}\.png$/.test(f)).length; } catch (e) { heldPng = 0; }
+  if (existsSync(STAMP) && heldPng > 0) {
+    let old = null;
+    try { old = JSON.parse(readFileSync(STAMP, "utf8")); } catch (e) { old = null; }
+    if (old && old.fp && old.fp !== fp && !RESUME_ANYWAY) {
+      console.error(`
+❌ 帧目录里已有 ${heldPng} 帧，但输入指纹变了（旧 ${old.fp} / 新 ${fp}）。
+` +
+        `   继续跑会把旧代码版本的帧混进这部片子，而且不会有任何提示。
+` +
+        `   二选一：删掉 ${FRAMES} 重截；或确认要复用旧帧时加 --resume-anyway。`);
+      process.exit(1);
+    }
+    if (old && old.fp && old.fp !== fp) console.log(`  ⚠ --resume-anyway：复用 ${heldPng} 帧，尽管输入指纹已从 ${old.fp} 变为 ${fp}`);
+  }
+  try { mkdirSync(FRAMES, { recursive: true }); } catch (e) { }
+  writeFileSync(STAMP, JSON.stringify({ fp, page: PAGE, viewport: [WIDTH, HEIGHT], at: new Date().toISOString() }, null, 2));
+  return fp;
+}
+
 async function grab(M) {
   return withPage(async ({ send, ev }) => {
     const live = await readMeta({ ev });
@@ -269,7 +354,6 @@ async function grab(M) {
     const fps = live.fps;
     M.total = live.total; M.audio = live.audio; M.sfx = live.sfx;
 
-    await mkdir(FRAMES, { recursive: true });
     const from = Number(val("from", 0));
     const to = Number(val("to", M.total));
     const i0 = Math.max(0, Math.round(from * fps));
@@ -494,6 +578,14 @@ function loadMetaFromFile() {
   try {
     const M = JSON.parse(readFileSync(META, "utf8"));
     if (!M.total || !M.fps || !M.audio || !Array.isArray(M.sfx)) throw new Error("字段不全");
+    const now = inputFingerprint();
+    if (M.srcFingerprint && M.srcFingerprint !== now && !has("force-stale-meta")) {
+      console.error(`\n❌ meta.json 的输入指纹（${M.srcFingerprint}）与当前页面/素材（${now}）不一致。` +
+        `\n   --encode-only / --audio-only 会照旧事件表混音 —— 字幕、音效落点都可能对不上新画面。\n` +
+        `   二选一：先跑一次 --meta-only（或整片）刷新 meta；确认要用旧 meta 时加 --force-stale-meta。`);
+      process.exit(1);
+    }
+    if (M.srcFingerprint && M.srcFingerprint !== now) console.log(`  ⚠ --force-stale-meta：用旧 meta 混音（${M.srcFingerprint}）`);
     console.log(`用 ${META}：total=${M.total}s fps=${M.fps} 音效 ${M.sfx.length} 个`);
     return M;
   } catch (e) {
@@ -507,6 +599,9 @@ needBin("浏览器", BROWSER);
 needBin("ffmpeg", FF);
 if (!existsSync(PAGE)) { console.error(`❌ 页面不存在：${PAGE}\n   用 --root <工程目录> 或 --html <preview.html>`); process.exit(2); }
 console.log(`工具链：${BROWSER}  |  ${FF}`);
+
+/* 帧目录守卫放在开浏览器之前：指纹不符就当场拒绝，既不浪费时间，也能被无浏览器单测覆盖。 */
+if (!ENCODE_ONLY && !AUDIO_ONLY && !META_ONLY) guardFramesDir();
 
 const fromFile = (ENCODE_ONLY || AUDIO_ONLY) ? loadMetaFromFile() : null;
 let M = fromFile;

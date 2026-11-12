@@ -1,0 +1,123 @@
+{
+  "version": 2,
+  "project": "dsh-armory-supply",
+  "seed": "20261105-b",
+  "created": "2026-11-05",
+  "format": "video-4x3",
+  "picks": {
+    "world": "blueprint",
+    "hook": "contrast",
+    "transition": "paper-fold",
+    "caption": "margin-note",
+    "sound": "paper",
+    "rhythm": "compare"
+  },
+  "fixed": {
+    "format": "4:3 1440x1080",
+    "kind": "video",
+    "fps": 30,
+    "durationTarget": 45,
+    "qa": [
+      "fact-table",
+      "originality-9-axis",
+      "pure-seek",
+      "stereo-peak",
+      "av-offset"
+    ]
+  },
+  "newAxes": [
+    "hook"
+  ],
+  "forcedAxes": [],
+  "compatibility": true,
+  "context": {
+    "base": "recipes/dsh-armory-supply-20261105-a.json",
+    "vary": [
+      "hook"
+    ],
+    "excludeWorlds": [
+      "blueprint",
+      "lab",
+      "atlas"
+    ],
+    "excludeHooks": [
+      "question",
+      "confession",
+      "countdown"
+    ],
+    "locked": {
+      "hook": "contrast"
+    },
+    "historyWindow": 3,
+    "explore": 0.3,
+    "strictSeed": false,
+    "deckFingerprint": "2f57e06a064b",
+    "argv": [
+      "--project",
+      "dsh-armory-supply",
+      "--base",
+      "recipes/dsh-armory-supply-20261105-a.json",
+      "--vary",
+      "hook",
+      "--lock",
+      "hook=contrast",
+      "--seed",
+      "20261105-b"
+    ]
+  },
+  "prompt": {
+    "image": "deep prussian blue blueprint on tracing paper, precise dimension lines, section marks, cream paper sheet, vermilion stamp, overhead inspection light, no text. Palette bg:#071b2b, surface:#0d2a3d, paper:#f4f1e8, accent:#4d8dff, warning:#ffb02e, stamp:#e5482f. Type NotoSansSC 700/900/Geist/Geist Mono. Motifs: blueprint grid, dimension line, section mark, tracing paper, rivet. Composition: leave deliberate negative space for a headline; no readable text, no logos, no letters.",
+    "video": "对比: 旧法 → 新法 → 证据 → 反例 → 落版. Motion: line draw, dimension close, section reveal, paper fold, stamp. Transition: 折纸/卷纸. Captions: 页边注. Sound: 纸张音. Hook pattern: [N] 个 [入口]，现在只剩 [1] 个入口。. Avoid the reference film's exact copy, shot order, durations, transition combination, caption animation, motifs and SFX arrangement.",
+    "cover": "3:4 blueprint poster, oversized technical drawing, one red revision stamp, top blank for headline, cream and cobalt. Hook: 反差. Hero motif: blueprint grid. Brand block at bottom; keep key text in the top 75% and the right 120px clear. Render all text in HTML/SVG, not in the generated image.",
+    "negative": "reference film's exact copy, shot order, durations, light sweep, halftone wipe, flash white, center keyword sticker, metal title slam, riser/whoosh/shimmer, gibberish Chinese text, logos, watermarks"
+  },
+  "storyboard": [
+    {
+      "i": 1,
+      "name": "旧法",
+      "task": "旧流程/旧界面",
+      "budget": 8
+    },
+    {
+      "i": 2,
+      "name": "新法",
+      "task": "新流程/新界面",
+      "budget": 8
+    },
+    {
+      "i": 3,
+      "name": "证据",
+      "task": "真实操作/数字/状态",
+      "budget": 12
+    },
+    {
+      "i": 4,
+      "name": "反例",
+      "task": "边界/失败/风险",
+      "budget": 9
+    },
+    {
+      "i": 5,
+      "name": "落版",
+      "task": "价值句 + 命令",
+      "budget": 8
+    }
+  ],
+  "score": {
+    "hook": 0,
+    "thumbnail": 0,
+    "fact": 0,
+    "rhythm": 0,
+    "originality": 0,
+    "audio": 0
+  },
+  "notes": "v2 内容重写（用户否掉 v1 主线）：市场全面性 + 技能引用便捷性。幕名与幕序保持 compare 骨架不动，第 3/4 幕内容改为「全面性清点」与「便捷性引用」，原 v1 的验收边界（仅展示原因 / 依赖预检 / 凭据入口 / 真实连接态）降级为页边注与画面小字。实测 5 幕：旧法 8.59 / 新法 7.10 / 全面性 12.01 / 便捷性 9.22 / 落版 7.89，总 44.81s（旁白 42.21s，占时比 0.852）。与 budget 8/8/12/9/8 全部在 ±11% 内；v1 曾出现反例 +25% / 落版 -19%，通过把证据幕改成短句快节奏清点解决。钩子：首抽落在 question（depot 已用），改锁 contrast 重出；反差表达用「在 DSH 里找装备得先出趟门」→「整个市场接进大肥鱼」，刻意避开牌组 banned 的 four-places 句式（旧市场片标题「还在开四个地方」）。市场计数为 2026-11-05 本机调用产品数据层实测：连接器 573（可装 476 / 仅展示 97，原因 59+38）、技能 219,110、插件 11,279（两个社区清单合并；counts.total 只记源 1，v1 曾误报 8,063）、专家 429（376 agent + 53 team / 15 行业）、社区 MCP 40,000+（官方 Registry 逐游标翻满 400 页未到底；上游 2026-10-21 公开统计 47,267）。见 promo-supply/out/market-counts-live.json。 闸门实测：旁白占时比 0.852 ≥0.80；幕内最大空白 0.22（落版 0.40 属 CTA 前呼吸，允许 ≤1.0）；关键词字幕最短 1.73s ≥1.4；音效 32 事件。 音频返工（用户「配音有杂音」）：量出主因是音效密度——32 事件里 29 个压在语音上；重排为 28 事件、19 个在语音上，打字机全部锚到句间，音效母线 0.5→0.44，paper 再压一道（4-8k 0.077→0.009）。配音本身排除：静音段数字零、m4a 句间 -109.6 dBFS、语音 4-8k 中位 0.022、0 削顶。教训：p10 对句内无停顿的句子天然虚高，不能单独当气口判据。成片时长随之变为 44.72s（幕 8.53/7.10/12.00/9.55/7.54）。 成片复验返工两处：① s00 划线用「手动插值终点 + p:1」画，p=0 时退化成一条红竖线从 0s 挂到 8s，改为把进度交给 line() 的 p；② VOID 章 cue 8.42s 与 s01 折纸 8.45s 只差 0.03s、校验章与 s03 只差 0.16s，章等于没打出来；两个章点提前到句末 -0.95s，hold 实测 0.97s ≥0.8s。教训：排 cue 要算「下一幕起点 − 本幕峰值时刻」，不能只看单帧。",
+  "deliverables": {
+    "projectRoot": ".",
+    "pathRule": "其余路径相对 projectRoot（影片工程所在工作区根）解析",
+    "preview": "promo-supply/preview.html",
+    "script": "promo-supply/script.md",
+    "video": "待用户确认后渲染",
+    "cover": "待用户确认后从同一配方派生"
+  }
+}

@@ -1,4 +1,31 @@
+# dependencies
+node_modules/
+packages/*/node_modules/
+.pnpm-store/
+
+# build / render output
+dist/
+build/
+out/
+*.mp4.tmp
+
+# python
 __pycache__/
-*.pyc
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# logs and temp
+*.log
+*.tmp
 .DS_Store
 Thumbs.db
+
+# local env
+.env
+.env.*
+
+# skill 测试与 QA 的临时产物（跑测试会重建，不入库）
+skills/heshao-ai-video-v1/scripts/tests/_tmp_qa/
+skills/heshao-ai-video-v1/scripts/tests/fixture/out/

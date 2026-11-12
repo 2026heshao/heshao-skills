@@ -1,10 +1,40 @@
 ---
 name: heshao-ai-video-v1
-version: 2.1.0
-description: 参考片驱动的原创产品宣传片工作流，v2 内置受控随机牌组与 seed 配方：拆解参考片的钩子、文案结构、节奏、镜头、字幕与音效方法，重新设计视觉世界与分镜，产出原创文案、4:3 网页高仿真预览、旁白与自产音效，再逐帧渲染 MP4 并做音画 QA，交付后主动收集反馈并分层沉淀经验。只要用户要做产品宣传片、参考某支视频做新片、要 4:3 网页预览 / 分镜节奏表 / 可交互播放器，或明确说“不想每次抽卡随机 / 要系统性产出 / 在可控范围内变化”，就使用本 skill。Use for product promo videos, reference-driven original films, 4:3 HTML previews, storyboard/rhythm tables, TTS/SFX, frame rendering and A/V QA, and controlled-randomness recipe decks.
+version: 2.6.0
+description: 参考片驱动的原创产品宣传片工作流，v2 先看产品画像再决定熵源（本地牌组 / decks/proposals 试用卡 / 手写配方校验），内置受控随机牌组与 seed 配方：拆解参考片的钩子、文案结构、节奏、镜头、字幕与音效方法，重新设计视觉世界与分镜，产出原创文案、4:3 网页高仿真预览、旁白与自产音效，再逐帧渲染 MP4 并做音画 QA，交付后主动收集反馈并分层沉淀经验。只要用户要做产品宣传片、参考某支视频做新片、要 4:3 网页预览 / 分镜节奏表 / 可交互播放器，或明确说“不想每次抽卡随机 / 要系统性产出 / 在可控范围内变化”，或目标产品的品类跟现有牌组不像（“这个产品牌组里没有”“牌组不全/缺视觉世界怎么办”“要不要联网找参考”），就使用本 skill。Use for product promo videos, reference-driven original films, 4:3 HTML previews, storyboard/rhythm tables, TTS/SFX, frame rendering and A/V QA, controlled-randomness recipe decks, and deck-gap routing when the product does not match the existing cards. 需要 AI 生成实拍级镜头、空镜、转场或首尾帧素材时也走本 skill：内置 Seedance 2.0 子技能负责出提示词。
 ---
 
 # Heshao AI Video v2
+
+## When to Use
+
+给软件产品 / 插件 / 工具 / Agent 产品做 30–60 秒宣传片；用户给一支参考片要"按方法做新的"；
+要 4:3 网页预览 + 确认门 + 逐帧渲染；或明确要"受控随机、不要每次抽卡"。
+**不用**于纯剪辑转码、静态海报图文、以及用户要求完全复刻参考片（后者要先提醒原创性风险）。
+判据与开工前必须确认的事实见 §1。
+
+## Prerequisites
+
+Node 22+ · Python 3.12+ · ffmpeg（`h264_nvenc` 或 `libx264`）· Edge/Chrome · numpy · scipy · Pillow ·
+TTS 用 `edge-tts`（在线服务）。ffmpeg / Edge 常常不在 PATH（本机只有剪映自带那份），
+探测顺序：`PROMO_FFMPEG` / `PROMO_EDGE` → PATH → 常见安装目录 → `--ffmpeg` / `--edge` 显式指定。
+开工前先跑 `node scripts/render.mjs --preflight`：缺什么直接说清楚，不要跑到一半才崩。
+
+## Workflow
+
+Phase 0 拆参考片（只留方法）→ 0.5 产品画像与选路 → 1 抽配方 + 产品真相 + 新世界 → 2 文案/分镜/节奏表 →
+3 4:3 网页高仿真预览 → 4 旁白/音效/混音 → 5 预览 QA 与确认门 → 6 渲染 MP4 →
+7 成片 QA 与交付 → 8 交付后回访与分层沉淀。每阶段的硬要求见 §2。
+
+## Output
+
+一支片子的完整交付物 = **MP4 + 封面（3:4，同配方派生）+ `narration.vtt/.srt` + `captions.vtt/.srt`
++ 混音分轨（旁白 / 纯音效）+ 接触表 + `meta.json` + SHA-256 + 交付 README**
+（规格、QA 数字、重出命令、已知限制）。只发文件不算收尾，还要发 Phase 8 的 3+1 回访。
+
+## Resources
+
+见 §7 参考文件与脚本清单；工程参考实现见 §8。
 
 这是一套**参考片驱动的原创宣传片工作流**，不是一套固定皮肤，也不是“把参考片换个颜色”。
 
@@ -28,12 +58,13 @@ ffmpeg 与 Edge 常常不在 PATH 上（例如只有剪映自带的 ffmpeg）。
 
 ---
 
-## 0. v2：先抽配方，再开工
+## 0. v2：先判产品，再选熵源，最后抽配方
 
 v2 把“每次抽卡”改成**受控随机**：
 
 - **L0 宪法**：产品事实、品牌、画幅、时长、QA、禁用表达——永不随机。
 - **L1 牌组**：world / hook / transition / caption / sound / rhythm——只在 `decks/*.json` 的预审卡片里选。
+- **L1.5 试用卡**：`decks/proposals/*.json`。当本地牌组承载不了产品的核心动作时（Phase 0.5 判出来），联网找到的新表达先落在这层——不给 `--deck` 就不可见、随机不可达、也不进 `deckFingerprint`，转正才并入 L1。它存在的前提是“先看清产品再决定熵源”，不是“抽不出来就上网瞎找”。
 - **L2 种子**：seed 决定具体组合与微扰动；同 `project` + 同 seed + 同参数（`--base`/`--vary`/`--lock`/`--explore`）+ 同 decks/weights/history = 同结果。**seed 单独不是配方号**：换 `--base` 或往 `recipes/` 里多写一份配方，都会改变结果，这些前提都记在 `recipe.context` 里（`argv` 原文 + `deckFingerprint` 牌组指纹）。想让参数真的进熵源，用 `--strict-seed` 显式打开；默认不开，以保证既有 seed 的结果不变。
 - **L3 经验**：每次交付后的用户反馈写进 `experiences/`；单次只做案例，重复出现或用户明确要求才升级为规则，规则改动必须人工确认。
 
@@ -87,7 +118,7 @@ node scripts/pick.mjs --list
 
 ---
 
-## 2. 工作流阶段（0–7）
+## 2. 工作流阶段（0–8，含 0.5）
 
 ### Phase 0 — 拆参考片，只留下方法
 
@@ -112,9 +143,41 @@ node scripts/pick.mjs --list
 
 模板与 filled example：`references/deconstruction.md`。
 
+### Phase 0.5 — 产品画像与选路（先看清产品，再决定去哪儿抽卡）
+
+**抽卡之前先看产品。** `pick.mjs` 不看你的产品：`bestFor` 只是给人看的字段，抽签逻辑里 0 处引用。所以“牌组贴不贴这个产品”必须在这一步判出来，判完把结论写进配方的 `fit`。
+
+先出**产品画像卡**（四行，来自真实勘察，不联网也该做得出来）：
+
+| 项 | 写什么 |
+|---|---|
+| 核心动作 | 用户对产品做的那一件事，动词原形（装 / 召回 / 清点 / 编排…） |
+| 观众痛点 | 一句人话，不是功能名 |
+| 可见证据 | 界面上真能截到、能读出的东西（决定什么能上屏） |
+| 记忆点候选 | 一个具体物件或场面 |
+
+再判**适配**：把「核心动作」对着各世界的 `motion` 与 `motifs` 逐个比（`node scripts/pick.mjs --list` 看牌面）。三问的第 3 问是闸门——**这个世界为什么只适合这个产品？** 注意区分两种情况，只有一种该加卡：
+
+- 只是 `bestFor` 里没写你这个品类，但 `motion` 能承载核心动作 → **算适配**，别加卡。（atlas 的 `bestFor` 与 depot 重叠在“工具库/技能管理”，照样过闸，靠的是镜头语法换了而不是名字新。）
+- `motion` 里没有任何动作能表达核心动作 → **不适配**。例：产品核心是“两人同时改一份东西、改动即时互见”，而现有世界的 motion 全是**单机**动作（conveyor、stamp impact、drawer、folder pull、radar sweep、sky rotate），没有一个能表达“共在”。
+
+然后选路线，结论写进 `fit.verdict`：
+
+| 路线 | 什么时候用 | 命令 |
+|---|---|---|
+| A `local` | 本地牌组够用（默认） | `node scripts/pick.mjs --project p --seed s` |
+| B `trial` | 确实缺表达，且缺口能一句话说清 | 联网检索候选表达 → 照 `decks/proposals/_TEMPLATE.world.json` 写一张**试用卡**（必带 `source.urls` + `source.evidence` + 自带 `compat`）→ `node scripts/pick.mjs --lock world=<新id> --deck decks/proposals/<新id>.json` → `node scripts/doctor.mjs` |
+| C `handmade` | 你已经知道要哪组组合，随机只是噪声 | 抄 `recipes/_template.json` 手填 `picks` → `node scripts/pick.mjs --validate <配方>` |
+
+试用卡**不进正式牌组**：不给 `--deck` 就看不见、随机也抽不到（实测 80 组 0 命中），`deckFingerprint` 不变，所以它不污染任何既有配方的可复现性。转正条件是「本片跑通 QA + 第 2 个独立项目再次需要」，五步见 `references/product-fit-and-routing.md` §5。
+
+**联网只用来找新表达卡，不用来找产品事实。** 上屏的每个数字仍要指回代码 / README / package.json / 测试（Phase 1 的事实表），搜来的说法一律不上屏。
+
+反过来说：如果三问一个都答不上——产品没有可展示的真实操作、也没有能上屏的事实（纯氛围片、概念空镜、情绪品牌）——那不是缺卡，是**这套 skill 不适用**，改用 `beatra-ai-video-studio` 或 `video-shotcraft`，别往牌组里塞一张“氛围世界”。
+
 ### Phase 1 — 抽配方，再找产品真相与新世界
 
-先抽一份 recipe（或读取用户已有的 recipe），确认 `world / hook / transition / caption / sound / rhythm`。用户已经指定世界时用 `--lock world=...`，不要为了随机而随机。
+先按 Phase 0.5 选好的路线抽配方（A 本地 / B 试用卡 / C 手写校验），确认 `world / hook / transition / caption / sound / rhythm`，并把 `fit.verdict` 与 `fit.reason` 落进配方。用户已经指定世界时用 `--lock world=...`，不要为了随机而随机。
 
 **事实表先于文案。** 每个上屏数字、按钮、状态、命令、版本号都要有出处：代码行、README、package.json、测试。没有出处的数字不上屏；演示数据必须角标标注。
 
@@ -123,6 +186,8 @@ node scripts/pick.mjs --list
 1. 观众第一眼看到什么？
 2. 产品在画面里以什么方式被“使用”？
 3. 这个世界为什么只适合这个产品？
+
+如果产品动作能落到一件**实物**上（抽屉、卡片、标签、印章、星标、票据），优先实物，不要默认做全屏 UI 面板。实物要能用真实的图层、阴影、透视和材质感承载文字；文字仍由代码叠加，不交给图片生成。案例：`references/case-dsh-armory-vault.md`。
 
 不要复用参考片的视觉母题，也不要复用你上一支片子的皮肤。一个片子只建立一套世界。可选配方与推导方法：`references/visual-worlds.md`；机器可读版本是 `decks/worlds.json`。
 
@@ -165,6 +230,7 @@ node scripts/pick.mjs --list
 - 齿音/高频气息：`5.2kHz -1.5dB` + `6.8kHz` 8 阶低通是一个保守起点；不要为了降噪把 5k 以下也压暗。
 - 底拍如果要保留，用纯低频 thump；不要带 700–4500Hz 的噪声点击，否则在旁白下像杂音。
 - 音效优先自产（numpy 合成），不要直接复用参考片的音效名单与卡点排列。
+- **出表即测高频**：`build_sfx.py` 打印每个材质的 4.5k 以上占比，>0.30 当场标 ⚠ 并给母带链（4.8k 低通 + 7k -7dB + 限幅 -14 dBFS）。2026-11-05 实测 13 个材质里 8 个占比 0.40–0.59、峰值 -1.4～-6.2 dBFS，压在旁白下面就是用户口中的“杂音”——修音效，不要整片降噪旁白。
 - 以上三步都有脚本，不要手算秒数：`scripts/build_voice.py`（口播稿 → 逐句 TTS + 润音链 + 样本级句子时间轴）、`scripts/build_sfx.py`（13 种材质，每个材质独立随机流，改一个不会动到其它）、`scripts/build_timeline.py`（句子时间轴 + 镜头规格 → `timeline.js` 与 VTT/SRT）。完整命令：`references/audio-and-render.md` §7。
 - 混音留余量；AAC 编码可能让峰值高于源 WAV，必须解码后按立体声逐声道复验。
 
@@ -172,7 +238,15 @@ node scripts/pick.mjs --list
 
 ### Phase 5 — 预览 QA 与确认门
 
-在给用户看之前，自己先过：
+在给用户看之前，自己先过（两条有机器检查，不要靠记性）：
+
+```bash
+python -m unittest discover -s scripts/tests -p "test_*.py"                  # 闸门自身必须先全绿
+node scripts/check_engine_discipline.mjs --engine <项目>/assets/engine.js   # 舞台层复位 + 签名覆盖
+python scripts/pacing_report.py --timeline <项目>/assets/timeline.json      # 1× 节奏闸门
+```
+
+测试不全绿不许进确认门，也不许出片 —— 否则这些闸门等于没人跑的装饰。
 
 - 无 JS 错误；字体加载完成；voice readyState 正常；
 - 1440×1080 与 1366×768 窗口都不裁切；4:3 比例实测 1.3333；
@@ -188,7 +262,8 @@ node scripts/pick.mjs --list
 
 - headless Edge + CDP 打开 `preview.html?render=1`，按 `i/fps` 调 `__setTime`，逐帧 PNG；
 - 每帧等两个 `requestAnimationFrame` 再截；
-- 已存在的帧跳过，支持断点续跑；
+- 已存在的帧跳过，支持断点续跑；但 `out/frames/_stamp.json` 记输入指纹（页面 + assets 哈希 + 视口），指纹变了就拒绝复用旧帧，要强行复用需显式 `--resume-anyway`——实测有过中断进程留下 388 帧、下个进程静默混批的情况；
+- 未知参数一律打印用法并退出 2，不进入渲染分支（以前 `--help` 被忽略，直接开渲整片并覆写出品）；
 - 音频不经过浏览器：用旁白 + SFX 事件表在 ffmpeg 里 `adelay` 钉帧、`amix=normalize=0`，事件时刻按 `ceil(t*fps)/fps` 量化；
 - 不要用 `-shortest`（旁白比成片短会截画面）；用 `apad` + `-t 帧数/fps`；
 - 先探真峰值，再给全片统一母线 trim；不要只压旁白或只压音效；
@@ -210,6 +285,7 @@ node scripts/pick.mjs --list
 - 10 个左右关键帧“成片解码帧 vs 现截帧”的平均差与大幅差；采样时刻取**每幕落定后 ≥0.3s**，不要踩在换幕起点 —— 百叶快门与片尾淡出那几十毫秒本来就是黑帧，采到只会得到一个真确但无意义的报警。“画面为空”的判据看**结构**（亮度标准差与亮像素占比），不看平均亮度：atlas / tower / blueprint / depot 都是 `#05–#08` 暗底，有内容的落定帧 mean 只有 5~7。
 - 接触表；文件大小与 SHA-256；
 - 交付 README：成片链接、规格、QA 结果、重出命令、已知限制。
+- 产物落盘后把路径回填到 recipe 的 `deliverables`：**必须声明 `projectRoot`**（技能包外的影片工程根目录），其余路径一律相对它。技能包不存素材，也不要把交付物写进技能包。
 
 `scripts/qa_mp4.py` 是一份可直接改路径使用的成片 QA 脚本。它和 render.mjs 用同一套 ffmpeg 探测（`PROMO_FFMPEG` → PATH → 剪映自带），不再要求 ffmpeg 必须在 PATH 上。加 `--ref` 做逐帧回捞时必须带 `--project-root <影片工程目录>`，否则重截会在错误的目录里找页面。
 
@@ -235,7 +311,7 @@ node scripts/feedback.mjs --validate
 node scripts/feedback.mjs --index
 ```
 
-**单次反馈不许改规则、权重、牌组。** `candidate` 需要 2 个独立项目重复，或用户明确说“以后都这样”；先把 diff 给用户看，确认后才改 `SKILL.md` / `references/` / `decks/` / `weights.json`，并 bump 版本 + 写 changelog。不要问七项评分卡，不要拿“没问题”当好评。
+**单次反馈不许改规则、权重、牌组。** `candidate` 需要 2 个独立项目重复，或用户明确要求（记 `promotionBasis: "explicit-request"`，此时 `conditional`/`fail` 也能合法记 candidate）；先把 diff 给用户看，确认后才改 `SKILL.md` / `references/` / `decks/` / `weights.json`，并 bump 版本 + 写 changelog。不要问七项评分卡，不要拿“没问题”当好评。
 
 完整问法、判定表、硬失败清单与升级闸门：`references/feedback-loop.md`。
 
@@ -263,10 +339,12 @@ node scripts/feedback.mjs --index
 - **对比**：旧流程 vs 新流程，但不要做成功能清单。
 - **一天**：早上找工具 → 中午装错 → 晚上复盘。
 - **星图救援**：失联 → 星图 → 来路 → 暗星 → 牵引 → 落版。适合“能力很多、叫不出”的工具库；星图只做看法，不是产品功能。
+- **档案抽屉**：没亮过 → 一个抽屉 → 钉星标 → 搜/叫出名字 → 落版。适合“装过但找不回”的技能/工具库；抽屉、标签、星标是实物道具，不是 UI 面板。案例：`references/case-dsh-armory-vault.md`。
 
 ### 3.3 节奏
 
-- 45 秒是默认注意力预算；5–6 幕；单幕 5–9 秒。
+- 默认 **41s（5×8.2s）**；45s 只给信息层确实更厚的片子；5–6 幕；单幕 5–9 秒。
+- **1× 就必须是舒服的速度**：出片前量旁白占时比 ≥0.80、每幕最长空白 ≤0.35s（落版除 CTA hold 外 ≤1.0s）；不达标就压 `gap_after`（0.16–0.22）与幕间 `pad`，不许靠拉长镜头凑时长，也不许默认“用户会开倍速”。
 - 密度曲线：中密 → 蓄力 → 高密 → 峰值 → 高密 → 收束。
 - 一句旁白配一个动作；一个动作只占一个视觉焦点。
 - 关键信息落定后 hold ≥ 0.8s；硬切前后留 0.2–0.3s 呼吸。
@@ -285,6 +363,7 @@ node scripts/feedback.mjs --index
 - 底拍要么没有，要么纯低频；不要用高频 click 当“节奏”。
 - 转场音不要用参考片的 riser / whoosh / shimmer 组合；换一套材质（机械、纸张、继电器、伺服、扫描）。
 - 混音目标：旁白清晰、音效可辨、峰值留 1–3 dB 余量。
+- **不要默认铺一条持续房间底噪。** 底噪不是“电影感”的同义词；用户说“配音有杂音”时，先量句间：旁白句间是否数字零、混音句间是否有持续低频/高频。持续底噪优先整条删，再谈压缩/门限。单句气口与持续底噪是两类问题：前者换 TTS take（见 §6），后者删床。案例：`references/case-dsh-armory-vault.md` §6。
 
 ---
 
@@ -305,6 +384,7 @@ window.PROMO = {
 - `scenes[].cues` 用绝对秒；幕内动作全部相对幕起点。
 - `captions` 与 `sfx` 由旁白时间轴生成，不手写死。
 - `renderAt(t)` 里不读 `Date.now()`、不用 `Math.random()`、不写回元素状态。
+- 挂在 `#stage` 的共享元素（调暗 / 遮罩 / 颗粒 / 字幕 / HUD / 脚注 / 淡入淡出）必须在 `renderAt(t)` 开头复位，并全部列入 `signature()`；否则顺序渲染继承上一幕的状态、单帧 seek 不继承，只有逐帧回捞抓得到。
 - `?render=1`：隐藏 UI、停掉音频、固定 1440×1080、暴露 `__ready / __duration / __fps / __setTime(t)`。
 - 播放器与导出共用同一份 `timeline.js`；倍速只改 `t` 的推进速率。
 
@@ -321,6 +401,11 @@ window.PROMO = {
 - [ ] 播放 / 拖拽 / 重播 / 倍速 / 字幕 / 静音 / 音量 / 全屏 / 章节 / 抽屉
 - [ ] 纯函数 seek：0→t 逐帧 vs 直接 seek，元素签名一致
 - [ ] 关键帧无文字溢出、无遮挡、无空镜
+- [ ] `check_engine_discipline.mjs` 通过（舞台层复位 + 签名覆盖）
+- [ ] `pacing_report.py` 通过（1× 不需要倍速）
+- [ ] `scripts/tests` 全绿（用例数与耗时写进交付说明）
+- [ ] 舞台层共享件已在 `renderAt` 开头复位，且已进 `signature()` 清单
+- [ ] 节奏闸门：旁白占时比 ≥0.80、每幕最长空白 ≤0.35s（落版除 CTA hold 外 ≤1.0s）
 
 **成片**
 
@@ -328,6 +413,8 @@ window.PROMO = {
 - [ ] 音频覆盖整片、峰值 ≤ 0、逐声道 0 削顶
 - [ ] 音画偏移 ≤ 1 帧
 - [ ] 10 帧回捞对比通过
+- [ ] 配方 `fit.verdict` 不再是 TBD；判 `trial` 时 `research.trialDecks` 有记录且文件还在
+- [ ] `scripts/tests` 全绿（出片前再跑一次，防止中途改脚本）
 - [ ] 接触表、SHA-256、交付说明
 - [ ] 交付后按 Phase 8 发 3+1 回访；不等回复，不阻塞交付
 
@@ -335,7 +422,7 @@ window.PROMO = {
 
 ---
 
-## 6. 九个常见坑
+## 6. 十一个常见坑
 
 1. **把参考片的“方法”当成“风格”**：换色、换字、换贴纸不算原创；分镜顺序、幕长、转场组合、字幕位置、音效排列至少要有 7 个轴明显不同（任意 3 个轴同/近就重做）。
 2. **先画画面再配字**：会导致功能被硬塞、事实不准。先事实表，再文案，再分镜。
@@ -346,21 +433,30 @@ window.PROMO = {
 7. **缓存**：改了 CSS/JS/音频不加版本号，预览会跑旧文件；所有资源带 `?v=`，交付时提醒强制刷新。
 8. **把视觉比喻写成产品功能**：产品里没有“星图”，口播却说“把能力连成一张星图”，观众会期待一个不存在的功能。第一次出现必须用“比作/像/是看法”，中段交回真实界面，落版/封面加脚注。
 9. **用整片降噪掩盖单句气口**：先按句量 p10/p5，找离群句；单句气口先换 TTS take（标点变体），再考虑低通/门限。`afftdn` 对这类气口通常无效，整片门限会切字尾。
+10. **把持续房间底噪当“氛围”**：28s 的棕噪 + 45/90Hz 在句间 -42 dBFS，用户会听成“配音有杂音”；旁白本身量下来是数字零。先删持续底噪、再压机械音效，不要先给旁白加降噪。案例：`references/case-dsh-armory-vault.md` §6。
+11. **先抽卡再看产品**：`pick.mjs` 不看产品（`bestFor` 不参与抽签），你问它要什么它都乐意给一组“方法自洽但贴错产品”的配方，等画到分镜才发现，代价是整支重做。判据在 Phase 0.5：把核心动作对着各世界 `motion`/`motifs` 比一遍，三问第 3 问答不上就走 B 路线出试用卡；三问全答不上就承认这套 skill 不适用，别硬抽。
 
 ---
 
 ## 7. 参考文件
 
+**AI 素材生成子技能**：`subskills/seedance-20/SKILL.md`（Seedance 2.0，MIT，v6.7.0，2026-11-12 整包并入）。
+只在需要 AI 生成实拍级镜头、空镜、转场或首尾帧素材时进入；进入后按其自身的 Load Map 路由到 29 个二级技能，不要回主文件找镜头语法。
+边界：它只产出提示词和素材片段，**不替代**第 3 阶段的网页舞台与第 6 阶段的逐帧渲染；生成的片段仍要按分镜归位，并按 Phase 7 的 QA 标准验收。
+付费生成前先向用户确认 provider、素材、动作与额度，未确认不发起。
+
 - `references/deconstruction.md` — 参考片拆解表、可借/禁借清单、filled example。
+- `references/product-fit-and-routing.md` — Phase 0.5：产品画像卡、适配三问怎么判、A/B/C 三条抽卡路线、试用卡 schema 与转正五步、联网证据要求。
 - `references/originality-gates.md` — 9 轴雷同自检、改写策略、失败案例。
 - `references/story-rhythm.md` — 钩子类型、6 幕骨架、45 秒预算、字幕/CTA 规则。
-- `references/visual-worlds.md` — 7 套视觉世界配方（夜班盘点台 / 蓝图检修 / 塔台调度 / 档案卷宗 / 实验台 / 野战手册 / 星图台）。
+- `references/visual-worlds.md` — 13 套视觉世界配方（夜班盘点台 / 蓝图检修 / 塔台调度 / 档案卷宗 / 实验台 / 野战手册 / 星图台 / 多屏展陈墙 / 明暗双场 / 发布会舞台 / 文档台 / 像素闯关 / 宣纸手卷）。后 6 套与 3 张转场、3 张字幕、2 张节奏卡由 2026-11-06 从 `D:\Motiontemplates`（MotionGit 公开模板）拆方法增补，卡内 `source` / `borrowed` / `notCopied` 记明出处与边界。
 - `references/preview-contract.md` — 4:3 舞台、播放器、纯函数、音频同步、缓存。
 - `references/audio-and-render.md` — TTS 润音链、降噪诊断、SFX 合成、ffmpeg 渲染、QA 坑。
 - `references/facts-and-copy.md` — 事实表模板、演示数据标注、口播归一化、文案反例。
 - `references/controlled-randomness.md` — v2 牌组、兼容矩阵、权重、seed、加卡/调权重规则。
 - `references/scorecard.md` — 盲评 7 项、淘汰线、性能回填。
 - `references/case-dsh-armory-atlas.md` — 2026-11-04 能力星图案例：参考片选择、比喻合同、单句气口、编号/落版/封面修复与验收数字。
+- `references/case-dsh-armory-vault.md` — 2026-11-10 暗夜军械库案例：从“科技风被否”到电影感实物世界的**来源渠道**、AI 场景板、黄铜/深青配色、实物道具、七句/27.89s、持续底噪修复与验收数字；世界未注册进 decks，避免改牌组指纹。
 - `references/feedback-loop.md` — 交付后 3+1 问法、success/conditional/fail/unrated 判定、经验落盘、规则升级闸门与回滚。
 - `experiences/` — 每次交付的反馈账本（`_template.md` + `INDEX.md`）；只存项目/配方/分数/短引用，不存素材与个人信息。
 - `scripts/feedback.mjs` — 经验条目新建、schema 校验、索引重建、候选列表。
@@ -369,17 +465,21 @@ window.PROMO = {
 - `scripts/build_timeline.py` — 句子时间轴 + 镜头规格 → `timeline.js`（`window.PROMO`）、`narration.vtt/.srt`（整句口播，给平台外挂字幕）、`captions.vtt/.srt`（上屏关键词）。
 - `scripts/build_sfx.py` — 13 种材质自产音效（numpy，无参考片音源）；每个材质独立随机流，改/加/重排材质不会影响其它材质字节。
 - `scripts/tts_chain.py` — 润音链通用件（解码/裁静/EQ/压缩/淡入淡出/真峰值限幅/样本级拼装），被 `build_voice.py` 调用。
-- `scripts/doctor.mjs` — 牌组注册表体检：active world 是否都有兼容条目、悬空引用、永不可达的卡、权重缺项、文档世界数是否与牌组一致；不一致退出码 1。加卡/禁卡后必跑。
+- `scripts/check_engine_discipline.mjs` — 舞台层纪律机器检查：挂在 `#stage` 且被幕渲染器写过的元素必须每帧复位、必须进 `signature()`；另带 good/bad 两个 fixture 证明它能变红。
+- `scripts/pacing_report.py` — 节奏闸门：开场 lead / 幕首 lead / 句间空白 / 跨幕空场 / 片尾空场 / 旁白占时比 六项分别判 PASS/FAIL，阈值可用参数覆盖。
+- `scripts/tests/` — 6 个文件、52 用例（`python -m unittest discover -s scripts/tests -p "test_*.py"`）：参数白名单与帧指纹、meta 指纹、账本判定、timeline resolver、sfx 可复现与高频点名、qa_mp4 自检、两个闸门自身。
+- `scripts/doctor.mjs` — 注册表体检：active world 是否都有兼容条目、悬空引用、永不可达的卡、权重缺项、文档世界数；**轴数口径**（SKILL 声明 = gates 表行 = 配方 `fixed.qa` = pick.mjs 标签）；**deliverables 路径根**；**试用卡完整性**（compat / 撞 id / `source.urls` + `evidence`）；**选路留痕**（`fit` / `research` 一致性与试用引用可解析）。不一致退出码 1。加卡/禁卡、改配方字段、动 proposals 后必跑；`--root <dir>` 可对别的目录树跑（坏例自测用）。
 - `decks/*.json` — world / hook / transition / caption / sound / rhythm 牌组（含 banned 对照卡）。
+- `decks/proposals/_TEMPLATE.world.json` — 试用卡模板（L1.5）：联网找来的新表达先落在这里，必带 `compat` 与 `source` 证据，不给 `--deck` 就不可见不可达。
 - `compatibility.json` — world × 其余轴的合法组合。
 - `weights.json` — 权重与 explore 比例。
-- `recipes/_template.json`、`recipes/dsh-armory-depot-20261103.json` — 配方模板与 seed 配方。
-- `scripts/pick.mjs` — seeded 抽牌器、兼容性校验、prompt 块、storyboard 输出。
+- `recipes/_template.json`、`recipes/dsh-armory-depot-20261103.json` — 配方模板与 seed 配方。模板即字段契约：`fixed.qa` 用 `originality-9-axis`，交付后 `deliverables` 写 `projectRoot` + 相对路径。
+- `scripts/pick.mjs` — seeded 抽牌器、兼容性校验、prompt 块、storyboard 输出；`--deck decks/proposals/<id>.json` 注入试用卡（不给就不可见），`--allow-trial` 才让试用卡进随机池，`--fingerprint` 打印当前牌组指纹（手写配方要盖它），配方自动留 `fit` / `research` 空位与 `context.trialDecks` 记录。
 - `scripts/qa_mp4.py` — 成片规格/音频/接触表/逐帧回捞 QA（改路径即用）。
 - `evals/evals.json` — 真实任务测试提示。
 
 ## 8. 参考实现
 
-如果工作区里有之前做过的片子（例如 `promo-depot/`、`promo-atlas/`），可以把它当作**工程实现参考**：看 `assets/engine.js` 的纯函数、`assets/player.js` 的播放器、`scripts/render.mjs` 的逐帧导出、`scripts/qa_mp4.py` 的验收。不要复制它的视觉皮肤与文案——只复用工程管线和检查方法。
+如果工作区里有之前做过的片子（例如 `promo-depot/`、`promo-atlas/`、`promo-vault/`），可以把它当作**工程实现参考**：看 `assets/engine.js` 的纯函数、`assets/player.js` 的播放器、`scripts/render.mjs` 的逐帧导出、`scripts/qa_mp4.py` 的验收。`promo-vault/` 还演示了“AI 场景板 + 实物道具 + 无 UI 面板”的写法；不要复制它的暗夜军械库皮肤与文案——只复用工程管线和检查方法。
 
-一句话：**先抽一份受控配方，再把参考片拆成方法，从产品真相里长出一个新世界，用纯函数舞台和逐帧 QA 把它钉死；交付后再问一次真实反馈，把案例和规则分开沉淀。**
+一句话：**先看产品判适配，再选熵源（本地牌组 / 联网试用卡 / 手写校验）抽一份受控配方，把参考片拆成方法，从产品真相里长出一个新世界，用纯函数舞台和逐帧 QA 把它钉死；交付后再问一次真实反馈，把案例和规则分开沉淀。**

@@ -1,0 +1,107 @@
+{
+  "version": 2,
+  "project": "dsh-armory-blade",
+  "seed": "20261111-a",
+  "created": "2026-11-11",
+  "format": "video-4x3",
+  "picks": {
+    "world": "scroll",
+    "hook": "confession",
+    "transition": "trace-snap",
+    "caption": "margin-note",
+    "sound": "paper",
+    "rhythm": "peel"
+  },
+  "fixed": {
+    "format": "4:3 1440x1080",
+    "kind": "video",
+    "fps": 30,
+    "durationTarget": 41,
+    "qa": [
+      "fact-table",
+      "originality-9-axis",
+      "pure-seek",
+      "stereo-peak",
+      "av-offset"
+    ]
+  },
+  "newAxes": [
+    "world",
+    "hook",
+    "transition",
+    "caption",
+    "sound",
+    "rhythm"
+  ],
+  "forcedAxes": [],
+  "compatibility": true,
+  "context": {
+    "base": null,
+    "vary": null,
+    "excludeWorlds": [],
+    "excludeHooks": [],
+    "locked": {
+      "world": "scroll"
+    },
+    "historyWindow": 3,
+    "explore": 0.3,
+    "strictSeed": false,
+    "deckFingerprint": "084c84003bdc",
+    "argv": [
+      "--project",
+      "dsh-armory-blade",
+      "--lock",
+      "world=scroll",
+      "--seed",
+      "20261111-a",
+      "--no-history"
+    ]
+  },
+  "prompt": {
+    "image": "warm rice-paper scroll field with deep slate end caps top and bottom, one continuous black ink line running horizontally and still drawing itself, empty hand-drawn rounded boxes waiting to be filled, a small vermilion seal in the corner, soft even paper light, no text. Palette bg:#efe6d2, surface:#f8f1e2, paper:#1c1c1c, accent:#2f4f6f, warning:#b23a2e, stamp:#c0392b. Type NotoSansSC 900/Geist/Geist Mono. Motifs: growing ink line, empty outline box, scroll end caps, vermilion seal, paper fibre. Composition: leave deliberate negative space for a headline; no readable text, no logos, no letters.",
+    "video": "逐层剥离: 成品 → 拆层 → 逐层证据 → 归位 → 落版. Motion: lateral unroll, line draw, box fill, seal press. Transition: 描线吸附. Captions: 页边注. Sound: 纸张音. Hook pattern: 我以前靠 [旧方法] 管理 [对象]。. Avoid the reference film's exact copy, shot order, durations, transition combination, caption animation, motifs and SFX arrangement.",
+    "cover": "3:4 poster, vertical rice-paper scroll with slate caps, a single ink line drawn down the middle, two empty outline boxes, one vermilion seal near the bottom, big calm empty area up top, no readable text. Hook: 自白. Hero motif: growing ink line. Brand block at bottom; keep key text in the top 75% and the right 120px clear. Render all text in HTML/SVG, not in the generated image.",
+    "negative": "reference film's exact copy, shot order, durations, light sweep, halftone wipe, flash white, center keyword sticker, metal title slam, riser/whoosh/shimmer, gibberish Chinese text, logos, watermarks"
+  },
+  "storyboard": [
+    {
+      "i": 1,
+      "name": "成品",
+      "task": "钩子：一个成品卡 + 一个失控事实",
+      "budget": 8.2
+    },
+    {
+      "i": 2,
+      "name": "拆层",
+      "task": "把它拆成可见的几层（来源/分类/分发位）",
+      "budget": 8.2
+    },
+    {
+      "i": 3,
+      "name": "逐层证据",
+      "task": "每一层给一个真实操作证据",
+      "budget": 8.2
+    },
+    {
+      "i": 4,
+      "name": "归位",
+      "task": "层合回一张卡：秩序回来",
+      "budget": 8.2
+    },
+    {
+      "i": 5,
+      "name": "落版",
+      "task": "价值句 + 命令",
+      "budget": 8.2
+    }
+  ],
+  "score": {
+    "hook": 0,
+    "thumbnail": 0,
+    "fact": 0,
+    "rhythm": 0,
+    "originality": 0,
+    "audio": 0
+  },
+  "notes": ""
+}

@@ -1,0 +1,107 @@
+{
+  "version": 2,
+  "project": "dsh-armory-signal",
+  "seed": "20261110-a",
+  "created": "2026-11-10",
+  "format": "video-4x3",
+  "picks": {
+    "world": "tower",
+    "hook": "loss",
+    "transition": "scan-wipe",
+    "caption": "margin-note",
+    "sound": "mechanical",
+    "rhythm": "rescue"
+  },
+  "fixed": {
+    "format": "4:3 1440x1080",
+    "kind": "video",
+    "fps": 30,
+    "durationTarget": 45,
+    "qa": [
+      "fact-table",
+      "originality-9-axis",
+      "pure-seek",
+      "stereo-peak",
+      "av-offset"
+    ]
+  },
+  "newAxes": [
+    "world",
+    "hook",
+    "transition",
+    "caption",
+    "sound",
+    "rhythm"
+  ],
+  "forcedAxes": [],
+  "compatibility": true,
+  "context": {
+    "base": null,
+    "vary": null,
+    "excludeWorlds": [],
+    "excludeHooks": [],
+    "locked": {
+      "world": "tower"
+    },
+    "historyWindow": 3,
+    "explore": 0.3,
+    "strictSeed": false,
+    "deckFingerprint": "084c84003bdc",
+    "argv": [
+      "--project",
+      "dsh-armory-signal",
+      "--seed",
+      "20261110-a",
+      "--lock",
+      "world=tower",
+      "--no-history"
+    ]
+  },
+  "prompt": {
+    "image": "dark air-traffic control tower at night, green radar rings, paper flight strips, amber signal lights, glass and steel, cinematic top light, no text. Palette bg:#050b16, surface:#0c1a2b, paper:#e8eef5, accent:#7dffb2, warning:#ffb02e, stamp:#ff4d4d. Type NotoSansSC 700/900/Geist/Geist Mono. Motifs: radar ring, flight strip, runway light, signal lamp, glass. Composition: leave deliberate negative space for a headline; no readable text, no logos, no letters.",
+    "video": "救援: 乱局 → 诊断 → 修复 → 恢复 → 落版. Motion: radar sweep, strip slide, light blink, panel switch, hard cut. Transition: 扫描擦除. Captions: 页边注. Sound: 机械音. Hook pattern: 有些 [对象]，[动作] 完就再没被叫过。. Avoid the reference film's exact copy, shot order, durations, transition combination, caption animation, motifs and SFX arrangement.",
+    "cover": "3:4 control tower poster, radar ring and flight strips, amber and radar green, top negative space, one strong signal light. Hook: 损失. Hero motif: radar ring. Brand block at bottom; keep key text in the top 75% and the right 120px clear. Render all text in HTML/SVG, not in the generated image.",
+    "negative": "reference film's exact copy, shot order, durations, light sweep, halftone wipe, flash white, center keyword sticker, metal title slam, riser/whoosh/shimmer, gibberish Chinese text, logos, watermarks"
+  },
+  "storyboard": [
+    {
+      "i": 1,
+      "name": "乱局",
+      "task": "展示失控现场",
+      "budget": 7
+    },
+    {
+      "i": 2,
+      "name": "诊断",
+      "task": "找到问题/零调用/缺口",
+      "budget": 8
+    },
+    {
+      "i": 3,
+      "name": "修复",
+      "task": "执行一个真实修复动作",
+      "budget": 10
+    },
+    {
+      "i": 4,
+      "name": "恢复",
+      "task": "前后对比/秩序回来",
+      "budget": 10
+    },
+    {
+      "i": 5,
+      "name": "落版",
+      "task": "价值句 + 命令",
+      "budget": 10
+    }
+  ],
+  "score": {
+    "hook": 0,
+    "thumbnail": 0,
+    "fact": 0,
+    "rhythm": 0,
+    "originality": 0,
+    "audio": 0
+  },
+  "notes": ""
+}

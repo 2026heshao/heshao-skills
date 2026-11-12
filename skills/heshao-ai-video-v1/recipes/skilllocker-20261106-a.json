@@ -1,0 +1,110 @@
+{
+  "version": 2,
+  "project": "skilllocker",
+  "seed": "20261106-a",
+  "created": "2026-11-06",
+  "format": "video-4x3",
+  "picks": {
+    "world": "flicker",
+    "hook": "countdown",
+    "transition": "hard-cut",
+    "caption": "lower-left-label",
+    "sound": "mechanical",
+    "rhythm": "stamp-list"
+  },
+  "fixed": {
+    "format": "4:3 1440x1080",
+    "kind": "video",
+    "fps": 30,
+    "durationTarget": 41,
+    "qa": [
+      "fact-table",
+      "originality-9-axis",
+      "pure-seek",
+      "stereo-peak",
+      "av-offset"
+    ]
+  },
+  "newAxes": [
+    "world",
+    "hook",
+    "transition",
+    "caption",
+    "sound",
+    "rhythm"
+  ],
+  "forcedAxes": [],
+  "compatibility": true,
+  "context": {
+    "base": null,
+    "vary": null,
+    "excludeWorlds": [
+      "blueprint",
+      "blueprint",
+      "lab"
+    ],
+    "excludeHooks": [
+      "contrast",
+      "question",
+      "confession"
+    ],
+    "locked": {},
+    "historyWindow": 3,
+    "explore": 0.3,
+    "strictSeed": false,
+    "deckFingerprint": "084c84003bdc",
+    "argv": [
+      "--project",
+      "skilllocker",
+      "--seed",
+      "20261106-a"
+    ]
+  },
+  "prompt": {
+    "image": "split frame alternating a pale lilac paper field and a deep indigo field, thick black typographic weight on the light side, one cool blue progress rule on the dark side, thin outlined badges stacked in a column, flat graphic lighting, no text. Palette bg:#0b0e1a, bgLight:#eceef8, surface:#1a1f33, paper:#f7f8fc, accent:#4f7dff, warning:#ff5c8a, stamp:#c084fc. Type NotoSansSC 900/Geist/Geist Mono. Motifs: two-tone fields, thick underline, outlined badge, progress rule, list card. Composition: leave deliberate negative space for a headline; no readable text, no logos, no letters.",
+    "video": "清单逐行盖章: 起行 → 逐行确认 → 一枚否决章 → 全部落定 → 落版. Motion: light/dark hard cut, circle mask grow, badge pop-in, rule draw. Transition: 纯硬切. Captions: 左下入库标签. Sound: 机械音. Hook pattern: [时间]，找到 [目标]。. Avoid the reference film's exact copy, shot order, durations, transition combination, caption animation, motifs and SFX arrangement.",
+    "cover": "3:4 poster, upper half pale lilac field with a heavy black bar and an underline stroke, lower half deep indigo field with one blue rule and three outlined badges, hard horizontal split, no readable text. Hook: 倒计时. Hero motif: two-tone fields. Brand block at bottom; keep key text in the top 75% and the right 120px clear. Render all text in HTML/SVG, not in the generated image.",
+    "negative": "reference film's exact copy, shot order, durations, light sweep, halftone wipe, flash white, center keyword sticker, metal title slam, riser/whoosh/shimmer, gibberish Chinese text, logos, watermarks"
+  },
+  "storyboard": [
+    {
+      "i": 1,
+      "name": "起行",
+      "task": "钩子：清单第一条与它的疑问",
+      "budget": 8.2
+    },
+    {
+      "i": 2,
+      "name": "逐行确认",
+      "task": "一行一行亮起：谁在哪儿",
+      "budget": 8.2
+    },
+    {
+      "i": 3,
+      "name": "一枚否决章",
+      "task": "冲突/同名不替你选边",
+      "budget": 8.2
+    },
+    {
+      "i": 4,
+      "name": "全部落定",
+      "task": "整张清单落定，只剩可选项",
+      "budget": 8.2
+    },
+    {
+      "i": 5,
+      "name": "落版",
+      "task": "价值句 + 命令",
+      "budget": 8.2
+    }
+  ],
+  "score": {
+    "hook": 0,
+    "thumbnail": 0,
+    "fact": 0,
+    "rhythm": 0,
+    "originality": 0,
+    "audio": 0
+  },
+  "notes": ""
+}

@@ -1,0 +1,20 @@
+{
+  "name": "heshao-ai-video-v1",
+  "version": "2.6.0",
+  "private": true,
+  "description": "参考片驱动的原创产品宣传片工作流：先判产品画像再选熵源，受控随机牌组与 seed 配方，4:3 网页预览，逐帧渲染 MP4 并做音画 QA，需要时走内置 Seedance 2.0 子技能出 AI 镜头提示词。",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "pick": "node ../../skills/heshao-ai-video-v1/scripts/pick.mjs",
+    "doctor": "node ../../skills/heshao-ai-video-v1/scripts/doctor.mjs",
+    "preflight": "node ../../skills/heshao-ai-video-v1/scripts/render.mjs --preflight",
+    "voice": "python ../../skills/heshao-ai-video-v1/scripts/build_voice.py",
+    "timeline": "python ../../skills/heshao-ai-video-v1/scripts/build_timeline.py",
+    "sfx": "python ../../skills/heshao-ai-video-v1/scripts/build_sfx.py",
+    "render": "node ../../skills/heshao-ai-video-v1/scripts/render.mjs",
+    "qa": "python ../../skills/heshao-ai-video-v1/scripts/qa_mp4.py"
+  }
+}

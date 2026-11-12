@@ -22,6 +22,12 @@ from pathlib import Path
 
 import numpy as np
 
+try:  # Windows 控制台默认 GBK，打印 ⚠/❌/中文会直接炸；显式转 UTF-8
+    import sys as _sys
+    _sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
+
 SR = 44100
 OUT = Path("assets/sfx")
 RNG = np.random.default_rng(20261103)
@@ -117,9 +123,58 @@ def write(name: str, x: np.ndarray, pan: float = 0.0) -> float:
         fh.write(data)
     peak = float(np.max(np.abs(pcm))) if pcm.size else 0.0
     dbv = 20 * math.log10(max(peak, 1e-12))
+    whole, attack = hf_ratio(pcm)
+    hf = max(whole, attack)
+    HF_REPORT.append((name, hf, whole, attack, dbv))
     print(f"  {name:10s} {len(st)/SR:5.2f}s  {path.stat().st_size/1024:5.1f} KB  写盘峰值 {dbv:5.1f} dBFS"
+          f"  4.5k+ 整段 {whole:4.2f} / 起音 {attack:4.2f}"
+          + ("  ⚠高频偏亮" if hf > HF_CEILING else "")
           + (f"  ⚠ 被削 {over} 样本" if over else ""))
     return peak
+
+
+HF_CEILING = 0.30      # 4.5kHz 以上能量占比上限；超过就该过一遍母带，别等用户报「杂音」
+HF_REPORT: list = []
+
+
+def _hf_of(x, n=2048) -> float:
+    fr = np.fft.rfftfreq(n, 1 / SR)
+    hi = fr >= 4500
+    w = np.hanning(n)
+    acc = cnt = 0.0
+    a = 0
+    while a < len(x):
+        seg = x[a:a + n]
+        if seg.size < n:
+            pad = np.zeros(n)
+            pad[:seg.size] = seg
+            seg = pad
+        F = np.abs(np.fft.rfft(seg * w))
+        ssum = float(F.sum())
+        if ssum > 0:
+            acc += float(F[hi].sum()) / ssum
+            cnt += 1
+        a += n
+    return acc / cnt if cnt else 0.0
+
+
+def hf_ratio(pcm):
+    """返回 (整段占比, 起音占比)。
+
+    为什么两个都要看：2026-11-05 skilllocker 实测里，8 个材质在「起音 2048 点」上
+    占比 0.40-0.59，但按整段平均只有 2 个超 0.30 —— 因为这类材质就是「一声亮的撞击 +
+    一段衰减」。压在旁白下面被听成杂音的正是那个起音，所以闸门取两者较大值，
+    只看整段会把 relay/switch/type/scan 这类放过去。
+    """
+    if not pcm.size:
+        return 0.0, 0.0
+    x = pcm[:, 0] if pcm.ndim == 2 else pcm
+    if x.size == 0:
+        return 0.0, 0.0
+    n = min(2048, x.size)
+    whole = _hf_of(x, n)
+    attack = float(_hf_of(x[:n], n)) if x.size >= 256 else whole
+    return whole, attack
 
 
 def relay() -> np.ndarray:
@@ -277,12 +332,15 @@ def main() -> None:
         peaks.append(write(name, fn(), pan))
     worst = max(peaks) if peaks else 0.0
     print(f"done → {OUT}  {len(MATERIALS)} 个材质  seed={args.seed}  写盘最高峰值 {20*math.log10(max(worst,1e-12)):.2f} dBFS")
+    hot = [r for r in HF_REPORT if r[1] > HF_CEILING]
+    if hot:
+        print(f"  ⚠ {len(hot)}/{len(HF_REPORT)} 个材质 4.5k+ 占比 >{HF_CEILING}（取整段/起音较大值）：" +
+              ", ".join(f"{r[0]} {r[1]:.2f}" for r in hot))
+        print("    只压这批过母带（确定性、不动合成参数）：highpass=f=60, lowpass=f=4800, "
+              "equalizer=f=7000:t=q:w=1.2:g=-7, equalizer=f=2600:t=q:w=1.0:g=-1.5, "
+              "alimiter=limit=0.20（≈ -14 dBFS）；并把它们的事件增益乘 0.7、音效母线降到 0.50。")
     if worst > 0.999:
         print("  ⚠ 有材质写盘后被削顶 —— 降 norm() 的 peak 目标")
-
-
-if __name__ == "__main__":
-    main()
 
 
 if __name__ == "__main__":

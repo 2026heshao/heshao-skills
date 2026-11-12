@@ -36,6 +36,10 @@ const EXP = join(ROOT, "experiences");
 const INDEX = join(EXP, "INDEX.md");
 const VERDICTS = ["success", "conditional", "fail", "unrated"];
 const PROMOTIONS = ["none", "candidate", "promoted", "reverted"];
+/* candidate 的两种合法依据。SKILL.md Phase 8 早就写了「2 个独立项目重复，或用户明确要求」，
+   但校验器只认 success + generalizable —— 于是"用户明确说以后都这样"这种单次升级依据
+   在账本里无处记录，只能把 promotion 降级成 none，升级线索直接丢失（2026-11-05 实测）。 */
+const BASES = ["repeat", "explicit-request", "none"];
 const REQUIRED = ["date", "project", "recipe", "score", "verdict", "hardFail",
   "tags", "generalizable", "promotion", "summary", "userQuote"];
 
@@ -84,6 +88,8 @@ function validateOne(file, data) {
   if (!Array.isArray(data.tags)) errs.push("tags 必须是数组");
   if (typeof data.generalizable !== "boolean") errs.push("generalizable 必须是布尔");
   if (!PROMOTIONS.includes(data.promotion)) errs.push("promotion 非法");
+  const basis = data.promotionBasis === undefined ? null : data.promotionBasis;
+  if (basis !== null && !BASES.includes(basis)) errs.push("promotionBasis 非法（repeat|explicit-request|none）");
   if (typeof data.summary !== "string") errs.push("summary 必须是字符串");
   if (typeof data.userQuote !== "string") errs.push("userQuote 必须是字符串");
   if (data.recipe && data.recipe !== "manual" && !existsSync(join(ROOT, data.recipe))) {
@@ -107,8 +113,35 @@ function validateOne(file, data) {
     errs.push("fail 需要 hard-fail 或 score<6");
   }
   if (data.verdict === "unrated" && data.score !== null) errs.push("unrated 不应带 score");
-  if (data.promotion === "candidate" && !(data.verdict === "success" && data.generalizable)) {
-    errs.push("candidate 需要 success + generalizable");
+  if (data.promotion === "candidate") {
+    // repeat：老规矩，要 success + generalizable；explicit-request：用户明确说"以后都这样"，
+    // 此时 conditional / fail 也可以合法记 candidate（升级仍必须人工确认 diff）。
+    if (basis === "explicit-request") {
+      if (!data.userQuote) errs.push("explicit-request 需要 userQuote 里能看见用户原话");
+    } else if (!(data.verdict === "success" && data.generalizable)) {
+      errs.push("candidate 需要 success + generalizable，或 promotionBasis=\"explicit-request\"");
+    }
+  }
+  if (data.promotion === "promoted") {
+    if (basis === null) errs.push("promoted 需要写 promotionBasis（repeat|explicit-request）");
+    if (!Array.isArray(data.changes) || data.changes.length === 0) {
+      errs.push("promoted 必须列出 changes（改了哪些文件/规则），否则等于记了升级却没落地");
+    }
+    if (data.changes && data.changes.length) {
+      const miss = data.changes.filter((c) => typeof c === "string" && c.includes("/") &&
+        !existsSync(join(ROOT, c.split(" ")[0])));
+      if (miss.length) errs.push("changes 里这些路径不存在：" + miss.join(", "));
+    }
+    const cl = join(ROOT, "CHANGELOG.md");
+    if (existsSync(cl)) {
+      const text = readFileSync(cl, "utf8");
+      if (!/^## v\d+\.\d+\.\d+/m.test(text)) errs.push("promoted 但 CHANGELOG.md 里没有版本段落");
+      if (data.ruleVersion && !text.includes("## v" + data.ruleVersion)) {
+        errs.push(`promoted 记的 ruleVersion v${data.ruleVersion} 在 CHANGELOG 里找不到`);
+      }
+    } else {
+      errs.push("promoted 但找不到 CHANGELOG.md —— 规则升级必须留版本与变更记录");
+    }
   }
   return errs;
 }
@@ -119,7 +152,7 @@ function writeIndex() {
     "# 经验索引 / Experience Index",
     "",
     "> 由 `node scripts/feedback.mjs --index` 生成，不要手改。",
-    "> 单次反馈只写案例；`candidate` 需 2 个独立项目或用户明确要求，并经人工确认 diff 后才能升级为规则。",
+    "> 单次反馈只写案例；`candidate` 的依据记在 `promotionBasis`：`repeat`（≥2 个独立项目）或 `explicit-request`（用户明确要求），并经人工确认 diff 后才能升级为规则。",
     "> 规则升级后：同步 bump `SKILL.md` 版本 + 写 `CHANGELOG.md`，并在本表把 `candidate` 改为 `promoted`。",
     "",
     "| 日期 | 项目 | 评分 | 结论 | 标签 | 沉淀 | 文件 |",
@@ -155,8 +188,11 @@ function newEntry() {
   if (!VERDICTS.includes(verdict)) fail("--verdict 非法");
   const generalizable = has("generalizable");
   let promotion = val("promotion");
+  const basisArg = val("basis");
   if (!promotion) promotion = verdict === "success" && generalizable ? "candidate" : "none";
   if (!PROMOTIONS.includes(promotion)) fail("--promotion 非法");
+  let promotionBasis = basisArg || (promotion === "candidate" && verdict === "success" && generalizable ? "repeat" : "none");
+  if (!BASES.includes(promotionBasis)) fail("--basis 非法（repeat|explicit-request|none）");
   const rawDuration = val("duration", "");
   const duration = rawDuration === "" ? null : Number(rawDuration);
   if (duration !== null && (!Number.isFinite(duration) || duration <= 0)) fail("--duration 必须是正数");
@@ -173,6 +209,7 @@ function newEntry() {
     tags,
     generalizable,
     promotion,
+    promotionBasis,
     summary: val("summary"),
     userQuote: val("quote"),
     changes: [],
@@ -253,11 +290,12 @@ function candidates() {
   const rows = entries().filter((e) => e.data && e.data.promotion === "candidate");
   if (!rows.length) return console.log("没有待升级的 candidate。");
   for (const e of rows) {
-    console.log(`\n${e.data.date} · ${e.data.project} · ${e.data.score ?? "—"}`);
+    console.log(`\n${e.data.date} · ${e.data.project} · ${e.data.score ?? "—"} · 依据 ${e.data.promotionBasis || "未写"}`);
     console.log(`  ${e.data.summary}`);
     console.log(`  ${e.file}`);
   }
-  console.log("\n升级前：至少 2 个独立项目重复，或用户明确要求；先给用户看 diff，再改规则并 bump 版本。");
+  console.log("\n升级前：依据 repeat 需要 ≥2 个独立项目重复；依据 explicit-request 需要用户原话里明确说\"以后\"。" +
+    "两种都要先把 diff 给用户看，确认后才改规则并 bump 版本 + 写 CHANGELOG。");
 }
 
 if (has("new")) newEntry();

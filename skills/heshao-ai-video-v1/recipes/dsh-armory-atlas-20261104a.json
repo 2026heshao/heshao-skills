@@ -19,7 +19,7 @@
     "durationTarget": 45,
     "qa": [
       "fact-table",
-      "originality-8-axis",
+      "originality-9-axis",
       "pure-seek",
       "stereo-peak",
       "av-offset"
@@ -35,6 +35,22 @@
   ],
   "forcedAxes": [],
   "compatibility": true,
+  "fit": {
+    "verdict": "local",
+    "retroactive": true,
+    "productActions": [
+      "发现叫不出名字的能力",
+      "追溯来路",
+      "牵引调用"
+    ],
+    "reason": "回溯补记：核心动作是「把散落的能力看成一张可查询的星图」，atlas 的 motion（sky rotate / star ignition / constellation draw / aperture iris）能承载；其 bestFor 与 depot 在工具库上重叠，差异化靠镜头语法（见 references/case-dsh-armory-atlas.md §2），不是靠新名字。",
+    "rejectedCards": [
+      {
+        "id": "tower",
+        "why": "塔台的 scan-wipe 是监视语义，表达不了「来路与星座连线」"
+      }
+    ]
+  },
   "context": {
     "base": null,
     "vary": null,
@@ -91,5 +107,12 @@
     "originality": 0,
     "audio": 0
   },
-  "notes": "实拍 6 幕：失联 6.72 / 星图 8.92 / 来路 5.42 / 暗星 7.53 / 牵引 10.09 / 落版 8.30，总 46.98s；配方给的是救援 5 幕骨架，实际把诊断/修复拆成 4 幕，以此 notes 为准。文案合同：星图是看法，不是功能；口播第一次出现用“比作”，中段交回账本，落版/封面加脚注。另有 dsh-armory-atlas-atlas-20261104a.json 为修复前重复命名产物，勿用。"
+  "notes": "实拍 6 幕：失联 6.72 / 星图 8.92 / 来路 5.42 / 暗星 7.53 / 牵引 10.09 / 落版 8.30，总 46.98s；配方给的是救援 5 幕骨架，实际把诊断/修复拆成 4 幕，以此 notes 为准。文案合同：星图是看法，不是功能；口播第一次出现用“比作”，中段交回账本，落版/封面加脚注。另有 dsh-armory-atlas-atlas-20261104a.json 为修复前重复命名产物，勿用。",
+  "deliverables": {
+    "projectRoot": "DSH plugins/dsh-armory",
+    "pathRule": "以下路径一律相对 projectRoot 解析（技能包外的影片工程根，本机为 D:/桌面/AI Port/DSH plugins/dsh-armory）。技能包不存素材；渲染时用 --root <工程根> 指过去。",
+    "verified": "2026-11-05 实测存在；封面只有 HTML 源（promo-atlas/cover-3x4.html），未渲染 PNG，故不列 cover",
+    "video": "promo-atlas/out/final/dsh-armory-atlas-4x3.mp4",
+    "preview": "promo-atlas/preview.html"
+  }
 }

@@ -18,6 +18,7 @@
   ],
   "generalizable": true,
   "promotion": "promoted",
+  "promotionBasis": "explicit-request",
   "summary": "星图比喻合同、单句气口换 take、编号/落版/封面修复",
   "userQuote": "把这次视屏制作的灵感来源与选择的经验补充到 skill",
   "changes": [

@@ -132,11 +132,20 @@ def av_offset(mp4: Path, ref_wav: Path | None) -> float | None:
     if end <= start:
         return None
     ea, eb = ea[start:end], eb[start:end]
+    return envelope_offset(ea, eb, hop_ms=10.0)
+
+
+def envelope_offset(ea: np.ndarray, eb: np.ndarray, hop_ms: float = 10.0) -> float:
+    """两条包络之间的互相关峰值偏移（ms）。纯函数，方便单测锁"能测出已知偏移"。"""
+    ea = np.asarray(ea, dtype=np.float64)
+    eb = np.asarray(eb, dtype=np.float64)
+    if ea.shape != eb.shape or len(ea) < 32:
+        raise ValueError("包络长度必须相同且 ≥32 帧")
     ea, eb = ea - ea.mean(), eb - eb.mean()
     corr = np.fft.irfft(np.fft.rfft(ea, len(ea) * 2) * np.conj(np.fft.rfft(eb, len(eb) * 2)))
     lags = np.concatenate([np.arange(0, 21), np.arange(-20, 0)])
     vals = np.concatenate([corr[:21], corr[-20:]])
-    return float(lags[int(np.argmax(vals))]) * 10.0
+    return float(lags[int(np.argmax(vals))]) * hop_ms
 
 
 def extract(mp4: Path, idx: int, fps: float, dest: Path) -> Path:
@@ -158,8 +167,11 @@ def resample(render: Path, idx: int, fps: float, root: Path) -> Path:
 def diff(a: Path, b: Path) -> tuple[float, float]:
     x = np.asarray(Image.open(a).convert("L"), dtype=np.int16)
     y = np.asarray(Image.open(b).convert("L"), dtype=np.int16)
-    h, w = min(x.shape[0], y.shape[0]), min(x.shape[1], y.shape[1])
-    d = np.abs(x[:h, :w] - y[:h, :w])
+    # 尺寸不一致必须报错：以前静默取左上角交集，回捞帧与解码帧尺寸一旦不同
+    # （视口/缩放变了），比对就退化成"只比一小块"，PASS 也变得不可信。
+    if x.shape != y.shape:
+        raise ValueError(f"回捞对比尺寸不一致：{a} {x.shape[::-1]} vs {b} {y.shape[::-1]} —— 先统一 --width/--height 再比")
+    d = np.abs(x - y)
     return float(d.mean()), float((d > 24).mean())
 
 
@@ -180,9 +192,15 @@ def frame_content(path: Path) -> tuple[float, float, float]:
 
 
 def frame_is_blank(path: Path) -> bool:
-    """既暗又无结构才算空帧。落在换幕快门上的采样仍会被抓到（那确实是空帧）。"""
+    """空帧判据：无结构（std<6）即空，或又暗又无亮像素。
+
+    以前要求「既暗又无结构」，漏掉一整种情况：界面帧没加载出来时是**纯白**，
+    亮度高、std≈0，旧判据会放它过关 —— 而"白 plate"恰恰是最可能出现的渲染事故。
+    真实画面永远有台面/网格/尺子，std 不可能 <6，所以「均匀即空」不会带来假阳性。
+    落在换幕快门上的采样仍会被抓到（那确实是空帧）。
+    """
     mean, std, bright = frame_content(path)
-    return std < 6.0 and bright < 0.003
+    return std < 6.0 or (mean < 8.0 and bright < 0.002)
 
 
 def sheet(rows: list[tuple[float, Path]], dest: Path, cols: int = 4) -> Path:
@@ -245,6 +263,12 @@ def main() -> None:
     times = [float(x) for x in args.times.split(",") if x.strip()]
 
     i, n, a = info(mp4), frame_count(mp4), audio_stats(mp4)
+    # 默认采样表是上一支 44s 片子的；比成片还晚的时刻直接丢掉，否则 extract 会拿不到帧
+    _end = i["seconds"] or (n / fps_meta if n else 0)
+    _skip = [t for t in times if t >= _end - 1.0 / fps_meta]
+    if _skip:
+        print("  ..  drop sample times beyond film end:", ", ".join("%.1f" % t for t in _skip))
+        times = [t for t in times if t < _end - 1.0 / fps_meta]
     print(f"MP4 {mp4.name}")
     print(f"  {i['seconds']}s  {i['size']}  {i['codec']} @{i['fps']}fps  {i['audio']}")
     chk(i["size"] == f"{args.width}x{args.height}", f"size {i['size']} == {args.width}x{args.height}")

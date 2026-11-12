@@ -8,30 +8,35 @@
 
 > **决策从有限牌组里选，渲染由确定性模板执行；随机只发生在预选过的组合和微扰动里。**
 
-## 2. 三层
+## 2. 分层（L0–L3，含 L1.5）
 
 | 层 | 内容 | 随机 |
 |---|---|---|
 | L0 宪法 | 产品事实、品牌、画幅、时长、QA、禁用表达 | 不随机 |
 | L1 牌组 | world / hook / transition / caption / sound / rhythm | 只在预审过的卡片里选 |
+| L1.5 试用卡 | `decks/proposals/*.json`：本地牌组承载不了产品核心动作时，联网找来的新表达 | 只在本项目显式 `--deck` 时可见；不进 `deckFingerprint`，随机不可达（除非 `--allow-trial`） |
 | L2 种子 | 具体组合、纹理相位、粒子、微偏移 | 用 seed 固定 |
+| L3 经验 | 每次交付的反馈写进 `experiences/` | 不随机；单次只做案例，重复出现或用户明确要求才升级为规则 |
 
-80% 来自系统，20% 是一次有边界的实验。
+80% 来自系统，20% 是一次有边界的实验。进 L1.5 之前先做 Phase 0.5 的适配判定（`references/product-fit-and-routing.md`）——这一步决定该用哪层当熵源，而不是抽完再找理由。
 
 ## 3. 牌组
 
 ```
 decks/
-  worlds.json       6 个视觉世界
+  worlds.json       13 个视觉世界
   hooks.json        6 种钩子（+ 1 张参考片禁用卡）
-  transitions.json  5 种转场（+ 3 张参考片禁用卡）
-  captions.json     4 种字幕系统（+ 1 张参考片禁用卡）
-  sounds.json       4 种声音材质（+ 1 张参考片禁用卡）
-  rhythms.json      5 种叙事骨架
+  transitions.json  9 种转场（+ 3 张参考片禁用卡）
+  captions.json     8 种字幕系统（+ 1 张参考片禁用卡）
+  sounds.json       5 种声音材质（+ 1 张参考片禁用卡）
+  rhythms.json      7 种叙事骨架
+  proposals/        L1.5 试用卡 + _TEMPLATE.world.json（默认不参与抽签）
 compatibility.json  world × hook/transition/caption/sound/rhythm 的合法组合
 weights.json        权重与 explore 比例
 recipes/            每个项目一份可复现配方
 ```
+
+上面这些数字由 `doctor.mjs` 与 `decks/*.json` 实测核对（加卡、禁卡后记得同步本文件），不再是手抄的估值。
 
 卡片里带 `banned: true` 的是参考片的具体表达（暖光扫、半调擦除、闪白、中下关键词贴纸、riser/whoosh/shimmer、四个地方的钩子）。抽牌器默认永不选它们；它们留在牌组里是为了对照和审计，不是为了使用。
 
@@ -84,14 +89,29 @@ node scripts/pick.mjs --list
   "newAxes": ["hook", "transition"],
   "forcedAxes": [],
   "compatibility": true,
+  "fixed": {
+    "format": "4:3 1440x1080", "kind": "video", "fps": 30, "durationTarget": 44.9,
+    "qa": ["fact-table", "originality-9-axis", "pure-seek", "stereo-peak", "av-offset"]
+  },
   "context": { "base": "recipes/dsh-armory-depot-20261103.json", "vary": ["hook", "transition"] },
   "prompt": { "image": "...", "video": "...", "cover": "...", "negative": "..." },
   "storyboard": [{ "name": "入库口", "budget": 6.0 }],
-  "score": { "hook": 0, "thumbnail": 0, "fact": 0, "rhythm": 0, "originality": 0, "audio": 0 }
+  "score": { "hook": 0, "thumbnail": 0, "fact": 0, "rhythm": 0, "originality": 0, "audio": 0 },
+  "deliverables": {
+    "projectRoot": "DSH plugins/dsh-armory",
+    "pathRule": "产物路径一律相对 projectRoot（技能包外的影片工程根）；技能包不存素材",
+    "video": "promo-depot/out/final/dsh-armory-depot-4x3.mp4",
+    "preview": "promo-depot/preview.html"
+  }
 }
 ```
 
 `prompt` 是给下游生成用的固定块 + 槽位：ImageGen 只负责构图/光/材质；视频用 `renderAt(t)`；封面用同一份配方派生。
+
+两个字段是有闸门的契约，不是随手写：
+
+- `fixed.qa` 里的轴数标签必须等于 SKILL.md 声明的轴数（现 `originality-9-axis`）。历史值 `originality-8-axis` 会被 `doctor.mjs` 判 FAIL——包括 `pick.mjs` 里若还生成旧标签。
+- `deliverables` 只在交付后回填。有产物就必须声明 `projectRoot`，其余路径相对它、且不许写绝对路径；否则就是一条换机器即失效的悬空链接（v2.1.1 之前 depot 配方就是这样）。抽完还没出的配方可以不写 `deliverables`。
 
 ## 6. 项目循环
 
@@ -110,7 +130,8 @@ node scripts/pick.mjs --list
 2. 在 `compatibility.json` 给它配 hooks/transitions/captions/sounds/rhythms。
 3. 在 `weights.json` 的 `worlds` 给一个初始权重（1–2）。
 4. `pick.mjs --validate` 一份用它的测试配方；确认没有“暖纸 + 霓虹紫”这类坏组合。
-5. 先在一支片子里试，别同时加两张新卡。
+5. `node scripts/doctor.mjs` —— 加一张卡要同时动 4 个地方（deck / 兼容矩阵 / 权重 / 文档计数），漏一处不会报错，只会静默变松或静默不可达。
+6. 先在一支片子里试，别同时加两张新卡。
 
 ### 新 hook / transition / caption / sound
 
@@ -127,7 +148,7 @@ node scripts/pick.mjs --list
 ```json
 {
   "explore": 0.3,
-  "worlds": { "depot": 3, "blueprint": 2, "tower": 2, "archive": 2, "lab": 1, "field": 1 }
+  "worlds": { "depot": 3, "blueprint": 2, "tower": 2, "archive": 2, "lab": 1, "field": 1, "atlas": 1 }
 }
 ```
 
@@ -150,5 +171,7 @@ node scripts/pick.mjs --list
 - 牌组里混入参考片的禁用卡：迟早被抽到。
 - 不记录 seed/history：同一配方无法复现。
 - 权重只加不减：牌组会越来越偏，最后只剩一种风格。
+- 机器字段和文档各说各话：规则改成 9 轴了，`fixed.qa` 还写 `originality-8-axis`，下一个人只能猜。让 `doctor.mjs` 核对四处口径，别靠人记。
+- 交付物路径不写根：`deliverables.video: "promo-depot/..."` 其实是别的目录树里的相对路径，换机器就成悬空链接。必须声明 `projectRoot`。
 - 只按“好看”评分：事实、缩略图可读性、原创性、音频必须一起过。
 - 把一次好评直接写进权重：下一支片就会过拟合；先写 `experiences/`，重复再升级。

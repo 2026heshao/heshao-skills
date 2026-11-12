@@ -19,7 +19,7 @@
     "durationTarget": 44.9,
     "qa": [
       "fact-table",
-      "originality-8-axis",
+      "originality-9-axis",
       "pure-seek",
       "stereo-peak",
       "av-offset"
@@ -35,6 +35,22 @@
   ],
   "forcedAxes": [],
   "compatibility": true,
+  "fit": {
+    "verdict": "local",
+    "retroactive": true,
+    "productActions": [
+      "装",
+      "点名召回",
+      "清点减重"
+    ],
+    "reason": "回溯补记（v2.2.0 之前抽的配方，当时没有 Phase 0.5）：三个核心动作在 depot 的 motion 里都有承载——装=lid flip/magnetic snap，召回=tool roll，清点=conveyor/stamp impact；bestFor 亦含 plugin market / tool library / skill manager。",
+    "rejectedCards": [
+      {
+        "id": "archive",
+        "why": "抽卷/翻卷宗是单人静物动作，撑不起「装进来」这个机械感"
+      }
+    ]
+  },
   "context": {
     "base": null,
     "vary": null,
@@ -97,6 +113,9 @@
   },
   "notes": "Seed recipe for heshao-ai-video-v1 v2. Proves the depot world. Cover derived from the same recipe at promo-depot/cover-douyin.html.",
   "deliverables": {
+    "projectRoot": "DSH plugins/dsh-armory",
+    "pathRule": "以下路径一律相对 projectRoot 解析（技能包外的影片工程根，本机为 D:/桌面/AI Port/DSH plugins/dsh-armory）。技能包不存素材；渲染时用 --root <工程根> 指过去。",
+    "verified": "2026-11-05 三个产物均已实测存在",
     "video": "promo-depot/out/final/dsh-armory-depot-4x3.mp4",
     "cover": "promo-depot/cover-douyin.png",
     "preview": "promo-depot/preview.html"

@@ -1,5 +1,6 @@
 ---
 name: github-publish-via-api
+version: 1.0.0
 description: 当本机 github.com 不可达（git push 完全走不通）但 api.github.com 通时，改走 GitHub Git Data / Contents API 发布提交、创建 Release 并上传附件，并让本地与远程 SHA 精确对齐。用户环境为国内网络（github.com 常整段不可达），需要推送源码/发布安装包到 GitHub 时使用。也用于排查「提交被挂到别人账号 / 显示成 web-flow 机器人」的身份问题。
 agent_created: true
 ---

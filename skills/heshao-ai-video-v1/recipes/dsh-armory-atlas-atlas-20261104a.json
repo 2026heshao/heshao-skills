@@ -19,7 +19,7 @@
     "durationTarget": 45,
     "qa": [
       "fact-table",
-      "originality-8-axis",
+      "originality-9-axis",
       "pure-seek",
       "stereo-peak",
       "av-offset"
@@ -35,6 +35,16 @@
     "caption"
   ],
   "compatibility": true,
+  "fit": {
+    "verdict": "local",
+    "retroactive": true,
+    "productActions": [
+      "发现能力",
+      "调度调用"
+    ],
+    "reason": "回溯补记：修复前的重复命名草稿（tower 组合），未进入交付；留此记录只为说明它不是第二支配方。",
+    "rejectedCards": []
+  },
   "context": {
     "base": "recipes/dsh-armory-depot-20261103.json",
     "vary": [

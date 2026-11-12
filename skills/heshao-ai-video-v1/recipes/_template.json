@@ -18,7 +18,7 @@
     "durationTarget": 45,
     "qa": [
       "fact-table",
-      "originality-8-axis",
+      "originality-9-axis",
       "pure-seek",
       "stereo-peak",
       "av-offset"
@@ -28,6 +28,23 @@
   "newAxes": [],
   "forcedAxes": [],
   "compatibility": true,
+  "fit": {
+    "verdict": "TBD",
+    "productActions": [],
+    "reason": null,
+    "rejectedCards": [
+      {
+        "id": "archive",
+        "why": "<为什么这张卡承载不了核心动作；填不出这句就别加卡>"
+      }
+    ],
+    "note": "Phase 0.5 的判定：verdict 三选一 local（本地牌组够用）/ trial（联网出了试用卡）/ handmade（手填 picks + --validate），再写一句能查的理由。pick.mjs 不看产品（bestFor 不参与抽签），判定得你来；停在 TBD 过不了交付闸门。"
+  },
+  "research": {
+    "used": false,
+    "trialDecks": [],
+    "note": "只有走 B 路线才填：used=true 并把试用卡路径记进 trialDecks（--deck 抽卡时会自动写）。检索证据（queries/urls/retrievedAt/evidence/originality）存在 decks/proposals/<id>.json 的 source 块里，别只留链接。联网只找表达，上屏事实仍指回代码与文档。"
+  },
   "score": {
     "hook": 0,
     "thumbnail": 0,
@@ -40,5 +57,10 @@
   "context": {},
   "prompt": {},
   "storyboard": [],
-  "deliverables": {}
+  "deliverables": {
+    "projectRoot": "<技能包外的影片工程根目录名>",
+    "pathRule": "产物路径一律相对 projectRoot；技能包不存素材，渲染时 render.mjs 用 --root 指到工程根。有产物却没声明 projectRoot 会被 doctor 判 FAIL。",
+    "video": "<相对 projectRoot 的成片路径>",
+    "preview": "<相对 projectRoot 的预览页路径>"
+  }
 }

@@ -115,6 +115,41 @@
         "scripts/feedback.mjs",
         "experiences/INDEX.md"
       ]
+    },
+    {
+      "id": 14,
+      "prompt": "这个产品是个多人实时协同白板，牌组里 7 个世界看着都是仓库/档案/星图那类东西，没有一个像。你直接抽一张凑合用吧，或者随手加个「协同世界」卡。",
+      "expected_output": "不能直接抽，也不能随手加卡。先走 Phase 0.5：出产品画像卡（核心动作=同时编辑且改动即时可见、痛点=不知道谁在改/要刷新、可见证据=在线头像/光标位置/变更行高亮、记忆点候选=一条被两人同时拉动的线），再把核心动作逐个对 7 个世界的 motion/motifs 比（pick.mjs --list 看牌面），用三问第 3 问收口。区分两种不像：只是品类不在 bestFor 但 motion 能承载 → 算适配，走 A 路线不加卡；motion 里没有动作能表达核心动作（现有世界全是单机静态物件母题）→ 判不适配，走 B 路线：照 decks/proposals/_TEMPLATE.world.json 写试用卡，必须带 compat（缺了 allowedFor() 会静默放开整副牌组）与 source（queries/urls/retrievedAt/evidence/originality），然后 node scripts/pick.mjs --lock world=<新id> --deck decks/proposals/<新id>.json，再 node scripts/doctor.mjs。fit.verdict 填 trial 并写 why；联网只找表达，搜来的数字与竞品说法不上屏，上屏事实仍指回代码/README。若三问全答不上（没有可展示操作）应判定本 skill 不适用，改推荐其他视频 skill。",
+      "files": [
+        "SKILL.md",
+        "references/product-fit-and-routing.md",
+        "decks/proposals/_TEMPLATE.world.json",
+        "scripts/pick.mjs",
+        "scripts/doctor.mjs"
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "我觉得协同白板这个新发现的世界挺好使，直接并进 decks/worlds.json 吧，反正 pick.mjs --list 加个 --deck 也能用。顺便把 weights 调成 5，下片子都优先抽它。",
+      "expected_output": "拒绝并进正式牌组，也拒绝调权重。试用卡的边界要说清并实测：不给 --deck 时 --list 不显示、--lock 报 unknown world id；给了 --deck 但不给 --allow-trial 时随机池仍抽不到（实测 80 组 0 命中，其余 7 世界正常分布）；deckFingerprint 不含试用卡，所以正式配方可复现性不受影响（实测注入前后同为 2f57e06a064b）。转正要满足 references/product-fit-and-routing.md §5：本片跑通 QA + 第 2 个独立项目再次需要（或用户明确说以后都这样），然后五步并正并同步文档世界数与 visual-worlds.md，删掉 proposals 文件并在旧配方 research.trialDecks 处注明已转正，doctor PASS，写 CHANGELOG——并明确告知：并正会改变 deckFingerprint，旧 seed 从此不保证同样 picks。权重必须 1 起步（§8：新卡 1，验证过再到 2–3；单次反馈不改权重），凭一句“挺好使”给 5 违反闸门。另需检查 trialFor：声明给 A 项目的卡被 B 项目用，doctor 记 WARN。",
+      "files": [
+        "references/product-fit-and-routing.md",
+        "references/controlled-randomness.md",
+        "scripts/doctor.mjs",
+        "SKILL.md"
+      ]
+    },
+    {
+      "id": 16,
+      "prompt": "我已经完全知道这次要 archive + confession + drawer-slam + margin-note + paper + rescue 这组组合，别给我随机了。但又懒得改牌组，怎么办？",
+      "expected_output": "走 C 路线，不动牌组：cp recipes/_template.json 后手填 picks 六个格子，再 node scripts/pick.mjs --validate <配方> 让机器校兼容矩阵（实测能拦出 transition drawer-slam not compatible with atlas (allowed: eclipse-wipe, hard-cut) 这类错配）；注意手写时 fixed.qa 必须用 originality-9-axis，deliverables 若要回填必须声明 projectRoot。配方里 fit.verdict 记 handmade 并写一句理由，doctor 只校一致性，判定归 Phase 0.5。另外提醒：archive 允许的 transitions 是 paper-fold/drawer-slam，margin-note 与 paper、rescue 也在 archive 允许表内 —— 逐条对照 compatibility.json，不要凭印象；若某轴落在 banned 卡上会直接 FAIL，banned 卡只做对照审计。",
+      "files": [
+        "references/product-fit-and-routing.md",
+        "recipes/_template.json",
+        "compatibility.json",
+        "scripts/pick.mjs",
+        "scripts/doctor.mjs"
+      ]
     }
   ]
 }

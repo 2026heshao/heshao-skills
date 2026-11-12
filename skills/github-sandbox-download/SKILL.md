@@ -1,5 +1,6 @@
 ---
 name: github-sandbox-download
+version: 1.0.0
 description: Download files/folders or clone a GitHub repo/skill byte-exact from inside the WorkBuddy sandbox, bypassing the egress proxy's forced connection resets on large transfers. Use when fetching raw GitHub content, copying a skills package, or any task that needs reliable downloads from github.com / raw.githubusercontent.com in this environment.
 ---
 

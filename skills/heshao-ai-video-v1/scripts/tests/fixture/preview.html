@@ -1,0 +1,48 @@
+"""最小可渲染页面：只用来验证 render.mjs 的参数与帧目录守卫，不验证画面内容。
+
+契约面（references/preview-contract.md §8）：window.PROMO + ?render=1 下暴露
+__ready / __duration / __fps / __setTime(t)。
+"""
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>fixture</title>
+<style>
+  html,body{margin:0;background:#05070b}
+  #stage{position:absolute;left:0;top:0;width:1440px;height:1080px;overflow:hidden;background:#e9edf0}
+  .scene{position:absolute;inset:0;visibility:hidden;opacity:0}
+  #box{position:absolute;left:200px;top:300px;width:300px;height:200px;background:#1f6bff;border-radius:12px}
+  #txt{position:absolute;left:200px;top:560px;font:700 60px "Bahnschrift",sans-serif;color:#0b1020}
+</style></head>
+<body><div id="stage">
+  <section class="scene" id="s00"><div id="box"></div><div id="txt">A</div></section>
+  <section class="scene" id="s01"><div id="box2" style="position:absolute;left:600px;top:300px;width:300px;height:200px;background:#e5482f;border-radius:12px"></div><div id="txt2" style="position:absolute;left:600px;top:560px;font:700 60px sans-serif;color:#0b1020">B</div></section>
+</div>
+<script>
+window.PROMO = {
+  dur: 1.0, fps: 30, size: [1440, 1080], voice: "", sfxDir: "",
+  gains: { voice: 1, sfx: 0.6 },
+  scenes: [
+    { id: "s00", title: "A", code: "A", start: 0, end: 0.5, hud: "01 / A", cues: { head: 0.1 } },
+    { id: "s01", title: "B", code: "B", start: 0.5, end: 1.0, hud: "02 / B", cues: { head: 0.6 } }
+  ],
+  lines: [{ start: 0.1, end: 0.4, text: "甲" }, { start: 0.6, end: 0.9, text: "乙" }],
+  captions: [[0.1, 0.4, "甲", "甲"]],
+  sfx: []
+};
+(function () {
+  var roots = [document.getElementById("s00"), document.getElementById("s01")];
+  function renderAt(t) {
+    var ai = t < 0.5 ? 0 : 1;
+    for (var i = 0; i < roots.length; i++) {
+      roots[i].style.visibility = i === ai ? "visible" : "hidden";
+      roots[i].style.opacity = i === ai ? "1" : "0";
+    }
+    var p = Math.max(0, Math.min(1, (t - 0.1) / 0.3));
+    document.getElementById("box").style.transform = "translate(" + (p * 200) + "px,0)";
+    document.getElementById("box2").style.transform = "translate(" + (p * -120) + "px,0)";
+  }
+  window.__setTime = function (t) { renderAt(t); };
+  window.__duration = 1.0; window.__fps = 30;
+  renderAt(0);
+  window.__ready = true;
+})();
+</script></body></html>

@@ -1,0 +1,10 @@
+{
+  "name": "github-publish-via-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "github.com 不可达时，通过 GitHub Git Data / Contents API 发布提交、创建 Release、上传附件并对齐本地与远程 SHA。",
+  "type": "module",
+  "scripts": {
+    "upload-release": "python ../../skills/github-publish-via-api/scripts/upload_release_asset.py"
+  }
+}

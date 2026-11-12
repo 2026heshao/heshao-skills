@@ -43,6 +43,30 @@
       "position": "center",
       "banned": true,
       "risk": "high"
+    },
+    {
+      "id": "doc-rail",
+      "name": "左行号栏字幕",
+      "description": "关键词落在左侧行号槽对应行，逐行点亮；底部一行说明整句定格不漂移。",
+      "position": "left-rail",
+      "risk": "low",
+      "source": "motiongit/148294"
+    },
+    {
+      "id": "leader-tag",
+      "name": "引线标签",
+      "description": "关键词做成小标签，用一根引线指到画面里的具体物件，标签位置随物件不随句子漂。",
+      "position": "mid-right",
+      "risk": "medium",
+      "source": "motiongit/128610"
+    },
+    {
+      "id": "typewriter-line",
+      "name": "打字机说明行",
+      "description": "底部一行等宽说明由方块光标逐字敲出，强调词换色定格；只留关键词，不逐句复读。",
+      "position": "bottom-center",
+      "risk": "low",
+      "source": "motiongit/252912"
     }
   ]
 }

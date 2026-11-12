@@ -110,7 +110,10 @@ node scripts/feedback.mjs --index
 
 `candidate` 不等于规则。必须同时满足：
 
-1. **重复**：同一教训在 ≥2 个独立项目中出现；或用户明确说“以后都这样 / 写进规则”。
+1. **依据**（写进 `promotionBasis`，校验器按它判，不再只认 success + generalizable）：
+   - `repeat` —— 同一教训在 ≥2 个独立项目中出现，且本条 `verdict: success` + `generalizable: true`；
+   - `explicit-request` —— 用户原话明确说“以后都这样 / 写进规则 / 这次不用改，我说的是以后”，此时 `conditional` / `fail` 也能合法记 candidate，`userQuote` 必须留下那句原话。
+   `promoted` 必须带 `promotionBasis`。2026-11-05 实测：旧校验器只接受 success + generalizable，把"用户明确要求"这条合法路径堵死，只能把 promotion 记成 none，升级线索丢失。
 2. **可执行**：能写成一句检查项/参数/分支，不是“注意质量”。
 3. **人工确认**：把 diff 给用户看，用户点头后才改 `SKILL.md` / `references/` / `decks/` / `weights.json`。
 4. **可回滚**：改完 bump 版本 + 写 `CHANGELOG.md`，在经验文件里把 `promotion` 改为 `promoted`；下一支片若回归，改 `reverted` 并回退规则。

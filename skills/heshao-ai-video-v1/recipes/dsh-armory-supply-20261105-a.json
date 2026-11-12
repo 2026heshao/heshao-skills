@@ -1,0 +1,110 @@
+{
+  "version": 2,
+  "project": "dsh-armory-supply",
+  "seed": "20261105-a",
+  "created": "2026-11-05",
+  "format": "video-4x3",
+  "picks": {
+    "world": "blueprint",
+    "hook": "question",
+    "transition": "paper-fold",
+    "caption": "margin-note",
+    "sound": "paper",
+    "rhythm": "compare"
+  },
+  "fixed": {
+    "format": "4:3 1440x1080",
+    "kind": "video",
+    "fps": 30,
+    "durationTarget": 45,
+    "qa": [
+      "fact-table",
+      "originality-9-axis",
+      "pure-seek",
+      "stereo-peak",
+      "av-offset"
+    ]
+  },
+  "newAxes": [
+    "world",
+    "hook",
+    "transition",
+    "caption",
+    "sound",
+    "rhythm"
+  ],
+  "forcedAxes": [],
+  "compatibility": true,
+  "context": {
+    "base": null,
+    "vary": null,
+    "excludeWorlds": [
+      "lab",
+      "atlas",
+      "tower"
+    ],
+    "excludeHooks": [
+      "confession",
+      "countdown",
+      "contrast"
+    ],
+    "locked": {},
+    "historyWindow": 3,
+    "explore": 0.3,
+    "strictSeed": false,
+    "deckFingerprint": "2f57e06a064b",
+    "argv": [
+      "--project",
+      "dsh-armory-supply",
+      "--seed",
+      "20261105-a"
+    ]
+  },
+  "prompt": {
+    "image": "deep prussian blue blueprint on tracing paper, precise dimension lines, section marks, cream paper sheet, vermilion stamp, overhead inspection light, no text. Palette bg:#071b2b, surface:#0d2a3d, paper:#f4f1e8, accent:#4d8dff, warning:#ffb02e, stamp:#e5482f. Type NotoSansSC 700/900/Geist/Geist Mono. Motifs: blueprint grid, dimension line, section mark, tracing paper, rivet. Composition: leave deliberate negative space for a headline; no readable text, no logos, no letters.",
+    "video": "对比: 旧法 → 新法 → 证据 → 反例 → 落版. Motion: line draw, dimension close, section reveal, paper fold, stamp. Transition: 折纸/卷纸. Captions: 页边注. Sound: 纸张音. Hook pattern: 给 [对象] 装了这么多，你还记得几件？. Avoid the reference film's exact copy, shot order, durations, transition combination, caption animation, motifs and SFX arrangement.",
+    "cover": "3:4 blueprint poster, oversized technical drawing, one red revision stamp, top blank for headline, cream and cobalt. Hook: 提问. Hero motif: blueprint grid. Brand block at bottom; keep key text in the top 75% and the right 120px clear. Render all text in HTML/SVG, not in the generated image.",
+    "negative": "reference film's exact copy, shot order, durations, light sweep, halftone wipe, flash white, center keyword sticker, metal title slam, riser/whoosh/shimmer, gibberish Chinese text, logos, watermarks"
+  },
+  "storyboard": [
+    {
+      "i": 1,
+      "name": "旧法",
+      "task": "旧流程/旧界面",
+      "budget": 8
+    },
+    {
+      "i": 2,
+      "name": "新法",
+      "task": "新流程/新界面",
+      "budget": 8
+    },
+    {
+      "i": 3,
+      "name": "证据",
+      "task": "真实操作/数字/状态",
+      "budget": 12
+    },
+    {
+      "i": 4,
+      "name": "反例",
+      "task": "边界/失败/风险",
+      "budget": 9
+    },
+    {
+      "i": 5,
+      "name": "落版",
+      "task": "价值句 + 命令",
+      "budget": 8
+    }
+  ],
+  "score": {
+    "hook": 0,
+    "thumbnail": 0,
+    "fact": 0,
+    "rhythm": 0,
+    "originality": 0,
+    "audio": 0
+  },
+  "notes": ""
+}

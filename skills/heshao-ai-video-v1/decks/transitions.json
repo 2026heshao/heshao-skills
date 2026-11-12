@@ -66,6 +66,30 @@
       "family": "light",
       "banned": true,
       "risk": "high"
+    },
+    {
+      "id": "zone-mask",
+      "name": "圆遮罩吞场",
+      "description": "一个大圆从画面一角扩张，把整片场换成另一张卡；无闪白、无光扫、无半调。",
+      "family": "mask",
+      "risk": "low",
+      "source": "motiongit/867595"
+    },
+    {
+      "id": "panel-split",
+      "name": "竖条对开",
+      "description": "中央竖条先扩成缝，左右面板对开露出下一屏，开口宽度由时间函数写死。",
+      "family": "mask",
+      "risk": "low",
+      "source": "motiongit/252912"
+    },
+    {
+      "id": "trace-snap",
+      "name": "描线吸附",
+      "description": "新元素沿对齐线描出边框，再吸附到网格线落位；用制图动作本身当转场。",
+      "family": "mechanical",
+      "risk": "low",
+      "source": "motiongit/213827"
     }
   ]
 }

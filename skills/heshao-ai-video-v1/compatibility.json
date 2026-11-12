@@ -166,5 +166,159 @@
       "compare",
       "day"
     ]
+  },
+  "wall": {
+    "hooks": [
+      "question",
+      "loss",
+      "contrast"
+    ],
+    "transitions": [
+      "zone-mask",
+      "panel-split",
+      "hard-cut",
+      "mechanical-shutter"
+    ],
+    "captions": [
+      "doc-rail",
+      "leader-tag",
+      "margin-note",
+      "lower-left-label"
+    ],
+    "sounds": [
+      "electronic",
+      "mechanical"
+    ],
+    "rhythms": [
+      "peel",
+      "audit",
+      "compare"
+    ]
+  },
+  "flicker": {
+    "hooks": [
+      "contrast",
+      "loss",
+      "countdown"
+    ],
+    "transitions": [
+      "hard-cut",
+      "zone-mask"
+    ],
+    "captions": [
+      "leader-tag",
+      "lower-left-label",
+      "plate-header"
+    ],
+    "sounds": [
+      "electronic",
+      "mechanical"
+    ],
+    "rhythms": [
+      "compare",
+      "stamp-list",
+      "peel"
+    ]
+  },
+  "stage": {
+    "hooks": [
+      "countdown",
+      "question",
+      "object"
+    ],
+    "transitions": [
+      "zone-mask",
+      "hard-cut"
+    ],
+    "captions": [
+      "plate-header",
+      "margin-note",
+      "typewriter-line"
+    ],
+    "sounds": [
+      "electronic",
+      "mechanical"
+    ],
+    "rhythms": [
+      "peel",
+      "assembly",
+      "compare"
+    ]
+  },
+  "codex": {
+    "hooks": [
+      "question",
+      "loss",
+      "confession"
+    ],
+    "transitions": [
+      "trace-snap",
+      "hard-cut",
+      "paper-fold"
+    ],
+    "captions": [
+      "doc-rail",
+      "typewriter-line",
+      "margin-note"
+    ],
+    "sounds": [
+      "paper",
+      "mechanical"
+    ],
+    "rhythms": [
+      "stamp-list",
+      "audit",
+      "rescue"
+    ]
+  },
+  "pixelrun": {
+    "hooks": [
+      "countdown",
+      "contrast",
+      "question"
+    ],
+    "transitions": [
+      "panel-split",
+      "hard-cut"
+    ],
+    "captions": [
+      "typewriter-line",
+      "ticket-strip",
+      "lower-left-label"
+    ],
+    "sounds": [
+      "electronic",
+      "mechanical"
+    ],
+    "rhythms": [
+      "rescue",
+      "stamp-list",
+      "assembly"
+    ]
+  },
+  "scroll": {
+    "hooks": [
+      "object",
+      "confession",
+      "question"
+    ],
+    "transitions": [
+      "paper-fold",
+      "trace-snap"
+    ],
+    "captions": [
+      "margin-note",
+      "case-label",
+      "leader-tag"
+    ],
+    "sounds": [
+      "paper",
+      "celestial"
+    ],
+    "rhythms": [
+      "day",
+      "assembly",
+      "peel"
+    ]
   }
 }

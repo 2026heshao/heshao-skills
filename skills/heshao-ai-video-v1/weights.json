@@ -7,7 +7,13 @@
     "archive": 2,
     "lab": 1,
     "field": 1,
-    "atlas": 1
+    "atlas": 1,
+    "wall": 2,
+    "flicker": 2,
+    "stage": 2,
+    "codex": 2,
+    "pixelrun": 2,
+    "scroll": 2
   },
   "hooks": {
     "question": 3,
@@ -23,14 +29,20 @@
     "scan-wipe": 2,
     "drawer-slam": 2,
     "hard-cut": 1,
-    "eclipse-wipe": 1
+    "eclipse-wipe": 1,
+    "zone-mask": 2,
+    "panel-split": 2,
+    "trace-snap": 2
   },
   "captions": {
     "lower-left-label": 3,
     "margin-note": 2,
     "ticket-strip": 2,
     "case-label": 2,
-    "plate-header": 1
+    "plate-header": 1,
+    "doc-rail": 2,
+    "leader-tag": 2,
+    "typewriter-line": 2
   },
   "sounds": {
     "mechanical": 3,
@@ -44,6 +56,8 @@
     "assembly": 2,
     "rescue": 2,
     "compare": 1,
-    "day": 1
+    "day": 1,
+    "peel": 2,
+    "stamp-list": 2
   }
 }

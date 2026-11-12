@@ -10,6 +10,7 @@
  *   node scripts/pick.mjs --project next --base recipes/dsh-armory-depot-20261103.json --vary hook,transition
  *   node scripts/pick.mjs --validate recipes/dsh-armory-depot-20261103.json
  *   node scripts/pick.mjs --list
+ *   node scripts/pick.mjs --project my-film --lock world=vault --deck decks/proposals/vault.json
  *
  * Rules:
  *   - banned cards (reference-film expressions) are never picked.
@@ -19,10 +20,14 @@
  *   - same project + seed + args + decks/weights/history = same picks. The seed
  *     alone is NOT a recipe id: --base, --vary and --lock all change the result,
  *     and so does any new file in the history dir (they are recorded in context).
+ *   - Phase 0.5 first: fill recipe.fit (verdict/reason) once you know the product.
+ *     --deck injects a trial card from decks/proposals/ — it is invisible without
+ *     the flag, never enters deckFingerprint, and is not randomly reachable unless
+ *     you --lock it or pass --allow-trial.
  */
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSync } from "node:fs";
 import { createHash } from "node:crypto";
-import { join, resolve, basename, dirname } from "node:path";
+import { join, resolve, basename, dirname, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
@@ -67,6 +72,79 @@ const DECK_FINGERPRINT = fingerprintOf({
 
 function byId(axis, id) {
   return decks[axis].find((c) => c.id === id);
+}
+
+/* ---------- 试用卡（decks/proposals/）：联网检索这条第二熵源的落地容器 ----------
+ * 网上搜到的表达每次都可能不同，所以它不能直接进正式牌组：
+ *   - 只有显式 --deck 时才注入；默认 --list 看不见，正常抽签也抽不到（要 --lock 或 --allow-trial）
+ *   - DECK_FINGERPRINT 已在上方用「未注入」的牌组算完，所以试用卡不会污染既有配方的可复现声明
+ *   - 试用世界必须自带 compat：缺了它 allowedFor() 会静默放开整副牌组，等于绕过全部预审
+ * 转正走 references/product-fit-and-routing.md §5，那一步才会改指纹。 */
+function argAll(name) {
+  const all = [];
+  for (let i = 0; i < process.argv.length; i++) {
+    if (process.argv[i] === `--${name}` && process.argv[i + 1]) {
+      all.push(...String(process.argv[i + 1]).split(",").map((s) => s.trim()).filter(Boolean));
+    }
+  }
+  return all;
+}
+const allowTrial = flag("allow-trial");
+/* 记进配方的路径优先用包内相对路径：绝对路径换机器/换用户名就成悬空链接（和 deliverables 同一条规矩） */
+const relOf = (p) => {
+  const r = relative(ROOT, p);
+  return r && !r.startsWith("..") && !/^[A-Za-z]:/.test(r) ? r.split(sep).join("/") : String(p);
+};
+const TRIAL_IDS = new Set();
+const trialDecks = [];
+for (const given of argAll("deck")) {
+  const file = resolve(String(given));
+  const o = loadJSON(file);
+  const axis = o.kind || "world";
+  const tag = `试用卡 ${given}`;
+  const die = (m) => { console.error(`FAIL ${tag}: ${m}`); process.exit(1); };
+  if (!AXES.includes(axis)) die(`kind "${axis}" 不是合法轴（${AXES.join("/")}）`);
+  if (!o.id || !o.card) die("缺 id 或 card");
+  if (o.id !== o.card.id) die(`id "${o.id}" 与 card.id "${o.card.id}" 不一致`);
+  if (byId(axis, o.id)) die(`"${o.id}" 已存在于牌组 —— 试用卡不许覆盖已审过的卡，换 id 或走转正流程`);
+  if (o.card.banned) die("试用卡不能标 banned（banned 卡只用于对照审计）");
+  if (axis === "world") {
+    if (!o.compat) die("试用世界必须自带 compat，否则 allowedFor() 会静默放开整副牌组，兼容矩阵形同不存在");
+    for (const [key, list] of Object.entries(o.compat)) {
+      if (key.startsWith("_")) continue;
+      const depAxis = Object.keys(COMPAT_KEY).find((a) => COMPAT_KEY[a] === key);
+      if (!depAxis) die(`compat 出现未知分组 "${key}"`);
+      if (!Array.isArray(list) || !list.length) die(`compat.${key} 必须是非空数组`);
+      for (const id of list) {
+        const card = byId(depAxis, id);
+        if (!card) die(`compat.${key} 引用了牌组里不存在的 "${id}"`);
+        if (card.banned) die(`compat.${key} 允许了 banned 卡 "${id}"`);
+      }
+    }
+    const clean = {};
+    for (const [key, list] of Object.entries(o.compat)) if (!key.startsWith("_")) clean[key] = list;
+    compat[o.id] = clean;
+  }
+  decks[axis] = [...decks[axis], o.card];
+  TRIAL_IDS.add(`${axis}:${o.id}`);
+  trialDecks.push({
+    file: relOf(file), axis, id: o.id,
+    status: o.status || "trial",
+    trialFor: o.trialFor || null,
+    whyLocalDeckFailed: o.whyLocalDeckFailed || null,
+    source: o.source ? { queries: o.source.queries || [], retrievedAt: o.source.retrievedAt || null, urls: o.source.urls || [], evidence: !!o.source.evidence, originality: o.source.originality || null } : null,
+    promoteWhen: o.promoteWhen || null,
+  });
+  if (!o.source || !o.source.urls?.length || !o.source.evidence) {
+    console.error(`WARN ${tag}: source.urls / source.evidence 没填 —— 联网来源不可复现，日后没人能判断这张卡当时是怎么来的（doctor 会记一条）`);
+  }
+}
+
+/* 试用卡默认不进随机池：只有显式锁定或 --allow-trial 才可达 */
+function worldPool() {
+  const ids = allowedFor(null, "world");
+  if (allowTrial) return ids;
+  return ids.filter((id) => !TRIAL_IDS.has(`world:${id}`) || locked.world === id);
 }
 function active(axis) {
   return decks[axis].filter((c) => !c.banned);
@@ -183,6 +261,12 @@ function buildStoryboard(picks) {
 }
 
 /* ---------- main ---------- */
+if (flag("fingerprint")) {
+  /* 手写配方（C 路线）也要能盖上当时的牌组指纹，否则日后无法判断能不能复现 */
+  console.log(DECK_FINGERPRINT);
+  process.exit(0);
+}
+
 if (flag("list")) {
   for (const axis of AXES) {
     const cards = active(axis).map((c) => `${c.id}(${weightOf(axis, c.id)})`).join(", ");
@@ -281,9 +365,9 @@ let varyUsed = null;
 
 if (!base) {
   // first campaign: pick everything, but avoid recently used worlds/hooks
-  const worlds = allowedFor(null, "world").filter((id) => !excludeWorlds.includes(id));
+  const worlds = worldPool().filter((id) => !excludeWorlds.includes(id));
   picks.world = locked.world
-    ?? pick("world", worlds.length ? worlds : allowedFor(null, "world"), rng, { explore });
+    ?? pick("world", worlds.length ? worlds : worldPool(), rng, { explore });
   const hookIds = allowedFor(picks.world, "hook").filter((id) => !excludeHooks.includes(id));
   picks.hook = locked.hook
     ?? pick("hook", hookIds.length ? hookIds : allowedFor(picks.world, "hook"), rng, { explore });
@@ -313,8 +397,8 @@ if (!base) {
 
   // world first, so dependent axes can be validated
   if (vary.includes("world") && !locked.world) {
-    const worlds = allowedFor(null, "world").filter((id) => !excludeWorlds.includes(id) && id !== picks.world);
-    picks.world = pick("world", worlds.length ? worlds : allowedFor(null, "world").filter((id) => id !== picks.world), rng, { explore });
+    const worlds = worldPool().filter((id) => !excludeWorlds.includes(id) && id !== picks.world);
+    picks.world = pick("world", worlds.length ? worlds : worldPool().filter((id) => id !== picks.world), rng, { explore });
     newAxes.push("world");
   }
 
@@ -361,11 +445,28 @@ const recipe = {
     kind: formatInfo.kind,
     fps: formatInfo.kind === "cover" ? null : 30,
     durationTarget: formatInfo.kind === "cover" ? null : durationTarget,
-    qa: ["fact-table", "originality-8-axis", "pure-seek", "stereo-peak", "av-offset"],
+    // 9 轴口径（v2.0.2 起）；标签写进配方，别再退回历史的 8-axis
+    qa: ["fact-table", "originality-9-axis", "pure-seek", "stereo-peak", "av-offset"],
   },
   newAxes,
   forcedAxes,
   compatibility: true,
+  // Phase 0.5 的判定留痕。pick.mjs 不知道你的产品是什么（bestFor 不参与抽签），
+  // 所以它只能把格子留出来，不能替你填结论。
+  fit: {
+    verdict: "TBD",
+    productActions: [],
+    reason: null,
+    rejectedCards: [],
+    note: "先看产品再决定路线。交付前把 verdict 填成 local（本地牌组够用）/ trial（联网出了试用卡）/ handmade（手写 picks + --validate），并写一句能查的理由；doctor 只校一致性，判定归 Phase 0.5。",
+  },
+  research: {
+    used: trialDecks.length > 0,
+    trialDecks: trialDecks.map((t) => t.file),
+    note: trialDecks.length
+      ? "联网检索进来的第二熵源；证据（检索词/URL/时间/摘要/差异声明）存在试用卡文件里，别只留链接"
+      : "本次只用本地牌组。若产品核心动作在现有 worlds 的 motion/bestFor 里找不到承载，别硬抽，改走 --deck 试用卡（references/product-fit-and-routing.md）",
+  },
   context: {
     base: basePath ? String(basePath) : null,
     vary: varyUsed,
@@ -376,6 +477,7 @@ const recipe = {
     explore,
     strictSeed,
     deckFingerprint: DECK_FINGERPRINT,
+    trialDecks,
     argv: process.argv.slice(2),
   },
   prompt: buildPrompts(picks),
@@ -414,5 +516,8 @@ if (jsonOnly) {
   console.log(`newAxes      ${newAxes.join(", ") || "none"}`);
   console.log(`forcedAxes   ${forcedAxes.join(", ") || "none"}`);
   console.log(`compatible   yes`);
+  if (trialDecks.length) {
+    for (const t of trialDecks) console.log(`trial        ${t.axis}/${t.id}  ← ${t.file}  ${t.source?.urls?.length ? `来源 ${t.source.urls.length} 条` : "（无来源记录）"}`);
+  }
   console.log(`recipe       ${out}`);
 }

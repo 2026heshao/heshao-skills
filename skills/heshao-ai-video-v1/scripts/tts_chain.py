@@ -26,6 +26,12 @@ import edge_tts
 from scipy import ndimage
 from scipy.signal import butter, sosfilt, lfilter, resample_poly
 
+try:  # Windows 控制台默认 GBK，打印 ⚠/❌/中文会直接炸；显式转 UTF-8
+    import sys as _sys
+    _sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
+
 SR = 44100
 
 

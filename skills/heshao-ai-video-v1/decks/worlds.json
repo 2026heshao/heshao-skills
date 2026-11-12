@@ -288,6 +288,259 @@
       "imageDirection": "deep indigo night-sky observatory plate, brass meridian rings and etched magnitude ticks, fine constellation lines, one warm star, subtle nebula, cinematic rim light, no text, no logos",
       "coverDirection": "3:4 star-atlas poster, one oversized brass aperture ring in lower half, a single bright star and constellation lines, deep indigo with warm brass, top negative space for headline",
       "risk": "medium"
+    },
+    {
+      "id": "wall",
+      "name": "多屏展陈墙",
+      "source": "motiongit/128610",
+      "borrowed": "对比双栏 + 引线标注，把抽象关系拆成可见物件；右侧图层逐层剥离展开；四角 HUD 常驻品牌/幕号/时间码",
+      "notCopied": "不用它的紫→品红→橙渐变主张、不搬它的场景顺序、不复用它的 57s 固定幕表",
+      "concept": "深靛近黑底上一层极细点阵：窗口卡、纸白截图卡、引线标签与薄层玻璃片成对置摆，一张表被拆成可数的物件。",
+      "palette": {
+        "bg": "#070a12",
+        "surface": "#131a2b",
+        "paper": "#f4f6fb",
+        "accent": "#5b9cff",
+        "warning": "#ff5c8a",
+        "stamp": "#e8b23a"
+      },
+      "type": {
+        "zh": "NotoSansSC 900",
+        "latin": "Geist",
+        "mono": "Geist Mono"
+      },
+      "motifs": [
+        "window card",
+        "leader-line tag",
+        "fine dot grid",
+        "thin glass sheet",
+        "corner HUD"
+      ],
+      "motion": [
+        "panel slide-swap",
+        "layer peel",
+        "iso stack apart",
+        "concentric trace close"
+      ],
+      "bestFor": [
+        "skill manager",
+        "multi-tool dispatch",
+        "coverage matrix",
+        "plugin library"
+      ],
+      "imageDirection": "deep indigo wall at night with a barely visible dot grid, floating window cards and paper-white screenshot panels, thin leader lines with small tags, one sheet of glass pulled away from a stack, cool blue rim light from upper right, flat graphic poster lighting, no text",
+      "coverDirection": "3:4 poster, a stack of window cards peeled apart on the left, one paper-white screenshot card front and centre, thin leader tags pointing at each layer, deep indigo ground, generous empty top band for a headline, no readable text"
+    },
+    {
+      "id": "flicker",
+      "name": "明暗双场",
+      "source": "motiongit/867595",
+      "borrowed": "明暗两套世界交替当拍点（不需要真剪切）；限制条件做成徽章逐个盖章",
+      "notCopied": "不做它的 13 幕固定排布、不用它的大写徽章文案、不复用它的一次 RGB 错位",
+      "concept": "两个场来回切：淡紫白纸面场（黑粗字、紫下划线）与深靛场（冷蓝进度条、白描小徽标），换场本身就是节拍。",
+      "palette": {
+        "bg": "#0b0e1a",
+        "bgLight": "#eceef8",
+        "surface": "#1a1f33",
+        "paper": "#f7f8fc",
+        "accent": "#4f7dff",
+        "warning": "#ff5c8a",
+        "stamp": "#c084fc"
+      },
+      "type": {
+        "zh": "NotoSansSC 900",
+        "latin": "Geist",
+        "mono": "Geist Mono"
+      },
+      "motifs": [
+        "two-tone fields",
+        "thick underline",
+        "outlined badge",
+        "progress rule",
+        "list card"
+      ],
+      "motion": [
+        "light/dark hard cut",
+        "circle mask grow",
+        "badge pop-in",
+        "rule draw"
+      ],
+      "bestFor": [
+        "product promo",
+        "before/after",
+        "policy or safety story",
+        "feature toggles"
+      ],
+      "imageDirection": "split frame alternating a pale lilac paper field and a deep indigo field, thick black typographic weight on the light side, one cool blue progress rule on the dark side, thin outlined badges stacked in a column, flat graphic lighting, no text",
+      "coverDirection": "3:4 poster, upper half pale lilac field with a heavy black bar and an underline stroke, lower half deep indigo field with one blue rule and three outlined badges, hard horizontal split, no readable text"
+    },
+    {
+      "id": "stage",
+      "name": "发布会舞台",
+      "source": "motiongit/667934",
+      "borrowed": "极负空间：一次只放一个元素，靠黑细边框把画面切成大屏分区；幕长交给整幕时钟（旁白决定幕长）",
+      "notCopied": "不用它的实景山湖底、不搬它的 108s 结构、不复制它的毛玻璃卡片文案排布",
+      "concept": "暖灰白舞台上一块黑细边框大屏：一次只讲一件事，真实界面作为卡料被推到屏中央，四周是刻意的空。",
+      "palette": {
+        "bg": "#f2f1ee",
+        "surface": "#ffffff",
+        "paper": "#1a1a1a",
+        "accent": "#2f5cff",
+        "warning": "#d4380d",
+        "stamp": "#111111"
+      },
+      "type": {
+        "zh": "NotoSansSC 900",
+        "latin": "Geist",
+        "mono": "Geist Mono"
+      },
+      "motifs": [
+        "black hairline frame",
+        "spotlit platform",
+        "frosted card",
+        "empty stage floor",
+        "single object"
+      ],
+      "motion": [
+        "object roll-in",
+        "card focus push",
+        "frame mask open",
+        "light fall to black"
+      ],
+      "bestFor": [
+        "launch film",
+        "keynote feel",
+        "one clear promise",
+        "desktop app"
+      ],
+      "imageDirection": "warm grey-white stage under a soft top light, a thin black hairline rectangle framing the upper area, one floating frosted panel centre stage, deep empty floor in front, tiny dust in the beam, minimal product-launch staging, no text",
+      "coverDirection": "3:4 poster, tall empty warm stage, one hairline-framed screen in the upper two thirds, a single frosted card centred low, huge negative space for a headline at the top, no readable text"
+    },
+    {
+      "id": "codex",
+      "name": "文档台",
+      "source": "motiongit/148294",
+      "borrowed": "把文档界面当舞台：行号槽 + 幕号 + 时间码当章节导航；结论纵向堆叠成清单；红色斜章压在旧结论上做「论证—否决—修正」",
+      "notCopied": "不搬它的 155s 幕表、不做它的中英双语字幕排、不用它的角色小人当前景",
+      "concept": "纸白文档台：左侧行号槽一行一行亮起，幕号与时间码当 HUD，清单逐行落定，改口的结论上压一枚斜章。",
+      "palette": {
+        "bg": "#f6f5f1",
+        "surface": "#ffffff",
+        "paper": "#161616",
+        "accent": "#1f5fd0",
+        "warning": "#c0392b",
+        "stamp": "#d14a3a"
+      },
+      "type": {
+        "zh": "NotoSansSC 900",
+        "latin": "Geist",
+        "mono": "Geist Mono"
+      },
+      "motifs": [
+        "line-number rail",
+        "marker highlight",
+        "checkmark row",
+        "diagonal reject stamp",
+        "timecode HUD"
+      ],
+      "motion": [
+        "line reveal",
+        "row check",
+        "stamp slam",
+        "highlight sweep"
+      ],
+      "bestFor": [
+        "audit story",
+        "checklist payoff",
+        "explainer",
+        "report / verify"
+      ],
+      "imageDirection": "warm paper-white document desk seen flat, a narrow left gutter of line numbers, rows of heavy black bars stacked like a checklist, one blue marker stroke across a row, a red diagonal stamp overlapping an old row, thin hairline HUD in the corners, no text",
+      "coverDirection": "3:4 poster, paper-white document field with the line-number rail on the left, five stacked checklist rows in the middle, one blue highlight and one red diagonal stamp, brand block bottom, no readable text"
+    },
+    {
+      "id": "pixelrun",
+      "name": "像素闯关",
+      "source": "motiongit/252912",
+      "borrowed": "三层景深不加摄影机：抖动面板 + 透视网格地 + 前景剪影观众；打字机与方块光标给说明行进行中感",
+      "notCopied": "不做复古游戏音色铺满、不用它的落日色块、不复制它的观众排布",
+      "concept": "深夜紫底一片星点：中央一块屏承载内容，脚下透视网格地向前滚，前景站一排像素剪影，说明行由光标逐字敲出。",
+      "palette": {
+        "bg": "#140f2b",
+        "surface": "#241a45",
+        "paper": "#f4f4ff",
+        "accent": "#42e8b8",
+        "warning": "#ff5cd0",
+        "stamp": "#ffd166"
+      },
+      "type": {
+        "zh": "NotoSansSC 900",
+        "latin": "Geist",
+        "mono": "Geist Mono"
+      },
+      "motifs": [
+        "dither panel",
+        "perspective grid floor",
+        "silhouette foreground",
+        "square cursor",
+        "scanline edge"
+      ],
+      "motion": [
+        "vertical bar open",
+        "fan stack",
+        "dither wipe",
+        "cursor type-on"
+      ],
+      "bestFor": [
+        "product promo",
+        "progress / stages",
+        "playful tool",
+        "step sequence"
+      ],
+      "imageDirection": "deep purple night field with sparse star dots, a central screen panel with chunky dithered shading, a perspective grid floor rolling toward the viewer, a low row of pixel silhouette heads in the foreground, neon teal and magenta edge lights, no text",
+      "coverDirection": "3:4 poster, tall purple field, one dithered screen panel in the middle third, perspective grid floor at the bottom, thin neon edge glow, empty top band for a headline, no readable text"
+    },
+    {
+      "id": "scroll",
+      "name": "宣纸手卷",
+      "source": "motiongit/394243",
+      "borrowed": "一笔到底：一条持续生长的墨线同时当时间轴与转场，观众永远知道进度在哪；先画空线框，再填入真实截图",
+      "notCopied": "不用它的楷体系列文案排布、不搬 59s 幕表、不复制沿线旅行的蓝墨点母题",
+      "concept": "宣纸米黄长卷上下压深蓝灰轴边：一条墨线横贯全卷持续生长，空线框先画好，再把真实界面填进框里，落点盖一枚朱印。",
+      "palette": {
+        "bg": "#efe6d2",
+        "surface": "#f8f1e2",
+        "paper": "#1c1c1c",
+        "accent": "#2f4f6f",
+        "warning": "#b23a2e",
+        "stamp": "#c0392b"
+      },
+      "type": {
+        "zh": "NotoSansSC 900",
+        "latin": "Geist",
+        "mono": "Geist Mono"
+      },
+      "motifs": [
+        "growing ink line",
+        "empty outline box",
+        "scroll end caps",
+        "vermilion seal",
+        "paper fibre"
+      ],
+      "motion": [
+        "lateral unroll",
+        "line draw",
+        "box fill",
+        "seal press"
+      ],
+      "bestFor": [
+        "brand narrative",
+        "timeline",
+        "calm tool",
+        "process story"
+      ],
+      "imageDirection": "warm rice-paper scroll field with deep slate end caps top and bottom, one continuous black ink line running horizontally and still drawing itself, empty hand-drawn rounded boxes waiting to be filled, a small vermilion seal in the corner, soft even paper light, no text",
+      "coverDirection": "3:4 poster, vertical rice-paper scroll with slate caps, a single ink line drawn down the middle, two empty outline boxes, one vermilion seal near the bottom, big calm empty area up top, no readable text"
     }
   ]
 }

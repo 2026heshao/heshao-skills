@@ -19,7 +19,7 @@
     "durationTarget": 45,
     "qa": [
       "fact-table",
-      "originality-8-axis",
+      "originality-9-axis",
       "pure-seek",
       "stereo-peak",
       "av-offset"

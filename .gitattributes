@@ -1,0 +1,34 @@
+# 本机 git 的 core.autocrlf=true 来自系统级配置（D:/develop/git/etc/gitconfig），
+# 它会在 checkout / clone 时改写换行，从而改变文件字节。
+#
+# 实测本仓库现状：49 个文本文件中 29 个纯 CRLF、18 个纯 LF、0 混合（2026-11-04）。
+# 因此这里选择「完全禁用换行转换」，让仓库保存的字节与工作副本逐字节相同：
+# 既不悄悄重写这 29 个文件，也不给将来留下「一次 restore 就改掉一批文件」的隐患。
+#
+# 想做统一的 LF 规范化，请另开一次显式提交（把 text=auto eol=lf 打开后跑
+# `git add --renormalize .`），并在提交前重跑 doctor / node --check / py_compile /
+# 渲染与音效的逐字节比对 —— 本仓库的多个验证以字节稳定为前提。
+* -text
+
+# 明确按二进制处理，避免被当成文本做 diff 或换行改写
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.webp   binary
+*.ico    binary
+*.mp4    binary
+*.mov    binary
+*.wav    binary
+*.mp3    binary
+*.m4a    binary
+*.aac    binary
+*.ttf    binary
+*.otf    binary
+*.woff   binary
+*.woff2 binary
+*.zip    binary
+*.gz     binary
+*.exe    binary
+*.dll    binary
+*.pyc    binary

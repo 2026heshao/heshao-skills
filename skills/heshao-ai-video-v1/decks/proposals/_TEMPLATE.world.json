@@ -1,0 +1,68 @@
+{
+  "_readme": "试用卡模板：复制成 decks/proposals/<id>.json 后使用。它只在显式 --deck 时被看见——不进正式牌组、不进 deckFingerprint、--list 不显示、不加 --deck 时永远抽不到。用完把 _readme 和所有 <...> 占位删掉。",
+  "kind": "world",
+  "id": "example-vault",
+  "status": "trial",
+  "trialFor": "<只允许本项目使用：填 recipe 的 project slug>",
+  "whyLocalDeckFailed": "<一句话：现有 7 个世界承载不了什么。要指向具体轴，例如「motion 里没有任何表达实时协同的动作」，不要写「不太搭」>",
+  "source": {
+    "queries": [
+      "<实际用过的检索词，一条一个，按顺序>"
+    ],
+    "retrievedAt": "<ISO 时间，检索发生的那一刻>",
+    "urls": [
+      "<看过的来源 URL>"
+    ],
+    "evidence": "<摘要或原文关键段（≤5 行）或本地截图路径。联网结果每次都不同，没有这段证据，这支配方日后无法审计，也无法判断是不是重复搜过>",
+    "originality": "<与上述来源的差异：只借方法不借表达。指出没照抄哪几样——母题、配色、字体、构图、镜头顺序>"
+  },
+  "card": {
+    "id": "example-vault",
+    "name": "<中文名>",
+    "concept": "<一句话世界观，含产品在其中被「使用」的方式>",
+    "palette": {
+      "bg": "#000000",
+      "surface": "#111111",
+      "paper": "#eeeeee",
+      "accent": "#cccccc",
+      "warning": "#ff0000",
+      "stamp": "#888888"
+    },
+    "type": {
+      "zh": "<中文字体与字重>",
+      "latin": "<拉丁字体>",
+      "mono": "<等宽字体>"
+    },
+    "motifs": [
+      "<视觉母题 3–5 个>"
+    ],
+    "motion": [
+      "<可动动作 3–5 个；这一项必须能承载产品核心动作，否则前面那句 whyLocalDeckFailed 不成立>"
+    ],
+    "bestFor": [
+      "<适合的产品品类；写窄一点，别写「工具类」这种和谁都搭的话>"
+    ],
+    "imageDirection": "<英文生图方向；no text, no logos>",
+    "coverDirection": "<英文封面方向>",
+    "risk": "medium"
+  },
+  "compat": {
+    "_readme": "试用世界必须自带兼容矩阵。缺了它 allowedFor() 会静默放开整副牌组——pick.mjs 和 doctor.mjs 都会因此报错。这里只能引用 decks/*.json 里已存在且非 banned 的卡。",
+    "hooks": [
+      "<hook id>"
+    ],
+    "transitions": [
+      "<transition id>"
+    ],
+    "captions": [
+      "<caption id>"
+    ],
+    "sounds": [
+      "<sound id>"
+    ],
+    "rhythms": [
+      "<rhythm id>"
+    ]
+  },
+  "promoteWhen": "<满足什么条件才并进 decks/worlds.json：通常是本片跑通 QA 且第 2 个独立项目再次需要；转正要走 references/product-fit-and-routing.md §5 的五步并跑 doctor>"
+}
