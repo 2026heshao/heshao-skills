@@ -1,0 +1,161 @@
+{
+  "version": 2,
+  "project": "dsh-armory-wall",
+  "seed": "20261112-a",
+  "created": "2026-11-12",
+  "format": "video-4x3",
+  "picks": {
+    "world": "wall",
+    "hook": "loss",
+    "transition": "mechanical-shutter",
+    "caption": "lower-left-label",
+    "sound": "electronic",
+    "rhythm": "compare"
+  },
+  "fixed": {
+    "format": "4:3 1440x1080",
+    "kind": "video",
+    "fps": 30,
+    "durationTarget": 40.6,
+    "qa": [
+      "fact-table",
+      "originality-9-axis",
+      "pure-seek",
+      "pacing-gate",
+      "engine-discipline",
+      "stereo-peak",
+      "av-offset"
+    ]
+  },
+  "newAxes": [
+    "world:wall（多屏展陈墙 → 四套网页叠牌 + 四货架横移 + 引线标签）",
+    "hook:loss（昨天装的那个 MCP，今天叫不出名字）",
+    "transition:mechanical-shutter（七片刀口每幕合上再抬起）",
+    "caption:lower-left-label（左下入库标签：编号方块 + 关键词反白）",
+    "sound:electronic（继电器/扫描/伺服/开关/打字；无 BGM）",
+    "rhythm:compare（旧法→新法→证据→边界→落版）"
+  ],
+  "forcedAxes": [],
+  "compatibility": true,
+  "fit": {
+    "verdict": "local",
+    "productActions": [
+      "装（四个市场安装）",
+      "看（谁在吃 token / 状态）",
+      "叫（会话内引用技能/MCP/专家）",
+      "搬（装备清单换机）"
+    ],
+    "reason": "核心动作是「在会话里把装过的东西叫出来」+「四个货架一次看完」。wall 卡的 motion（panel slide-swap / layer peel / iso stack apart / concentric trace close）能直接承载：窗口卡叠放=四套网页，横移=四个货架，同心圈=点开小图标。无需联网找新表达。",
+    "rejectedCards": [
+      {
+        "id": "depot",
+        "why": "夜班盘点台做的是「逐条清点」，本片主线是「叫出来」，会被迫回到账本叙事"
+      },
+      {
+        "id": "archive",
+        "why": "档案卷宗与 vault 案例的抽屉/卷宗实物母题重叠，容易变成同一支片子换皮"
+      },
+      {
+        "id": "stage",
+        "why": "发布会舞台信息层太薄，装不下 316/19万/429 三个数字"
+      }
+    ],
+    "note": "既往 dsh-armory 片已用 depot / atlas / tower / blueprint / lab / flicker / scroll(vault)，本片换 wall，且 hook/transition/caption/sound/rhythm 五轴同时换。"
+  },
+  "research": {
+    "used": false,
+    "trialDecks": [],
+    "note": "本次只用本地牌组。若产品核心动作在现有 worlds 的 motion/bestFor 里找不到承载，别硬抽，改走 --deck 试用卡（references/product-fit-and-routing.md）"
+  },
+  "context": {
+    "base": null,
+    "vary": null,
+    "excludeWorlds": [
+      "blueprint",
+      "lab",
+      "flicker"
+    ],
+    "excludeHooks": [
+      "contrast",
+      "confession",
+      "countdown"
+    ],
+    "locked": {
+      "world": "wall"
+    },
+    "historyWindow": 3,
+    "explore": 0.3,
+    "strictSeed": false,
+    "deckFingerprint": "084c84003bdc",
+    "trialDecks": [],
+    "argv": [
+      "--project",
+      "dsh-armory",
+      "--seed",
+      "20261112-a",
+      "--lock",
+      "world=wall"
+    ],
+    "userConfirmed": true,
+    "userChoice": "2026-11-12 用户选定：主线=会话窗口引用菜单的便捷性 + 市场的全面性；世界 wall；41s 中文旁白；依赖用本机 D:/develop/python/3.12（numpy/scipy/Pillow/edge-tts 齐全，零安装）",
+    "budgetNote": "compare 卡默认 8/8/12/9/8=45s；成品 40.60s（−9.8%），幕序不变：7.52/8.70/9.27/7.28/7.83。证据幕因四个货架横移需要最多时间，压缩落在边界幕。此偏离记录在此，不改牌组。"
+  },
+  "prompt": {
+    "image": "deep indigo wall at night with a barely visible dot grid, floating window cards and paper-white screenshot panels, thin leader lines with small tags, one sheet of glass pulled away from a stack, cool blue rim light from upper right, flat graphic poster lighting, no text. Palette bg:#070a12, surface:#131a2b, paper:#f4f6fb, accent:#5b9cff, warning:#ff5c8a, stamp:#e8b23a. Type NotoSansSC 900/Geist/Geist Mono. Motifs: window card, leader-line tag, fine dot grid, thin glass sheet, corner HUD. Composition: leave deliberate negative space for a headline; no readable text, no logos, no letters.",
+    "video": "对比: 旧法 → 新法 → 证据 → 反例 → 落版. Motion: panel slide-swap, layer peel, iso stack apart, concentric trace close. Transition: 机械快门. Captions: 左下入库标签. Sound: 电子音. Hook pattern: 有些 [对象]，[动作] 完就再没被叫过。. Avoid the reference film's exact copy, shot order, durations, transition combination, caption animation, motifs and SFX arrangement.",
+    "cover": "3:4 poster, a stack of window cards peeled apart on the left, one paper-white screenshot card front and centre, thin leader tags pointing at each layer, deep indigo ground, generous empty top band for a headline, no readable text. Hook: 损失. Hero motif: window card. Brand block at bottom; keep key text in the top 75% and the right 120px clear. Render all text in HTML/SVG, not in the generated image.",
+    "negative": "reference film's exact copy, shot order, durations, light sweep, halftone wipe, flash white, center keyword sticker, metal title slam, riser/whoosh/shimmer, gibberish Chinese text, logos, watermarks"
+  },
+  "storyboard": [
+    {
+      "i": 1,
+      "id": "s00",
+      "name": "旧法 · 四个网页",
+      "task": "损失钩子：四个市场摊成四套网页，末尾只剩一条搜不到名字的搜索框",
+      "budget": 7.52
+    },
+    {
+      "i": 2,
+      "id": "s01",
+      "name": "新法 · 一块面板",
+      "task": "不离开输入框：小图标亮起 → 引用菜单四类同屏 → 点一条插入 /name",
+      "budget": 8.7
+    },
+    {
+      "i": 3,
+      "id": "s02",
+      "name": "证据 · 四个货架",
+      "task": "卡墙横移：316（242 可装 / 74 仅展示）→ 19 万+ 技能 → 429 专家 → 插件两套清单",
+      "budget": 9.27
+    },
+    {
+      "i": 4,
+      "id": "s03",
+      "name": "边界 · 六行与空态",
+      "task": "一屏 6 行 + 最近置顶；本项目空态；只偶尔聊天的人用不上",
+      "budget": 7.28
+    },
+    {
+      "i": 5,
+      "id": "s04",
+      "name": "落版 · 一条命令",
+      "task": "散牌收拢成一块面板 + 价值句 + 安装命令 + v2.5.4",
+      "budget": 7.83
+    }
+  ],
+  "score": {
+    "hook": 0,
+    "thumbnail": 0,
+    "fact": 0,
+    "rhythm": 0,
+    "originality": 0,
+    "audio": 0
+  },
+  "notes": "world 用牌组里的 wall 卡，未新增条目，deckFingerprint 未变（084c84003bdc）。全部上屏数字有出处，见项目 script.md 事实表；插件条目数两处文档口径不一致，画面不写数字。纯代码渲染，无 AI 出图。",
+  "deliverables": {
+    "projectRoot": "D:/桌面/AI Port/DSH plugins/dsh-armory/promo-wall",
+    "pending": [
+      "out/final/dsh-armory-wall-1440x1080.mp4 待用户确认预览后渲染"
+    ]
+  }
+}

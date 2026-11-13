@@ -1,0 +1,18 @@
+{
+  "total": 1,
+  "fps": 30,
+  "audio": {
+    "voice": "",
+    "sfxDir": "",
+    "gains": {
+      "voice": 1,
+      "sfx": 0.6
+    }
+  },
+  "sfx": [],
+  "size": [
+    1440,
+    1080
+  ],
+  "srcFingerprint": "351b3b3c4a3b9165"
+}

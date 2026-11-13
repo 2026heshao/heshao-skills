@@ -1,5 +1,61 @@
 # Changelog
 
+## v2.8.0 — 2026-11-13
+
+补上整层缺失的「素材来源」。此前 skill 只有代码绘制（已实测帧精确）和第三方 AI 生成（只有提示词方法论、无本机实测）两条路，**图库 / 实拍 / 录屏 / 3D 资产 / 字体商用这一整层没有任何设定**：全仓 grep `Pexels|Unsplash|Pixabay|CC0|stock` = 0 命中，"保留素材来源、授权、生成入口"只有一句口号，没有字段、没有清单、没有校验。不动渲染契约、牌组、权重与既有配方。
+
+### 新增
+
+- `references/asset-sourcing.md`：六类来源（代码绘制 / 自制 / 免费商用图库 / 公有领域与 CC 混合库 / AI 生成 / 付费与影视帧）、选路决策树、素材规格（最短边 ≥1080px、4:3 裁切余量 ≈12%、序列命名与帧率）、三种进工程形态与确定性对照、`asset-manifest.json` 字段契约、许可白名单、与原创性九轴的**分层口径**、授权红线、十个坑。
+- `scripts/check_assets.py`：素材台账闸门。校验来源可溯（非自制必须 `source.url` + `retrievedAt`）、许可在白名单且与商用声明一致、署名文本齐备、`sha256` 与实际内容一致、同一素材跨镜复用拦截、`derivedFrom` 可解析。`--stamp` 回填哈希，`--json` 机器可读，`--allow-license` / `--allow-reuse` 为显式放行口。退出码 0/1/2。
+- `scripts/tests/test_check_assets.py`：31 用例，每个都要求闸门**能变红**（缺 url、日期格式、`cc-by-nc` 混入商用、署名空、哈希不符、跨镜重复、悬空派生、序列空目录、标准 `assets/` 布局的路径解析）。
+- `scripts/frames_from_video.py`：视频 → PNG 序列，绕开「嵌 MP4 不帧精确」。按工程 fps 规整、`cover`/`contain`/`none` 画幅处理、断号校验、帧数对账、`--emit-manifest` 吐台账片段、已有帧时拒绝覆盖（防混批）。元信息从 `ffmpeg -i` 的 stderr 解析，不依赖 ffprobe。
+- `scripts/tests/test_frames_from_video.py`：28 用例，含**真实 ffmpeg 端到端**（2.00s / 24fps 源 → 30fps 60 帧、序号 0001–0060 连续）；本机无 ffmpeg 时跳过并显式标注，不算通过。
+- `scripts/fetch_asset.py`：按明确 URL 下载单条素材 + 自动登记 + 立刻过闸门。四道拦截：非 http/https、>200MB、**magic bytes 判容器**（防盗链页常伪装成 `image/jpeg`）、同内容重复登记。有 `PEXELS_API_KEY` 时可走官方 API 检索。
+- `scripts/tests/test_fetch_asset.py`：18 用例，用本地 http 服务器测（不碰外网）：下载登记闭环、本地文件登记闭环、HTML 伪装被拦（URL 与 `--file` 两条路都测）、无许可拒收、路径逃逸拒收、dry-run 零写盘、已存在不静默覆盖、同内容换 id 被拦、cc-by 缺署名过不了闸门、自制素材免来源页。
+
+### 变更
+
+- `productionMethod` 由 `code/ai/hybrid` 扩为 `code/ai/hybrid/stock/footage/recorded`。前三个是制作方式，后三个是素材来源，两者并行记录，不互相覆盖；`ai-animation-workflow.md` §1 的枚举表同步补行。
+- Phase 3 硬要求加两条：非代码素材先登记再上屏、视频抽帧成序列（不直接嵌 MP4）；图片 `await img.decode()`、序列索引夹取。
+- Phase 5 命令块与 §5 QA 清单加 `check_assets.py` 一项；纯代码绘制记 N/A 并说明。
+- Phase 7 要求 `asset-manifest.json` 随工程保留（授权台账，不是可选附件）。
+- §6 由「十一个常见坑」改为「十二个」，新增第 12 条（素材当氛围板、忘了留痕）。
+- 版本 2.7.0 → 2.8.0；`scripts/tests` 计数更正为 9 文件 / 89 用例（原文写的 55 早已过期）。
+
+### 分层口径（本次关键决定）
+
+素材来源**不计入**原创性九轴，原创性只判组织方式（钩子、顺序、镜头语法、幕长、转场、字幕系统、视觉母题、声音排列、CTA）。素材层另立三条闸门：单镜原则（同一 `sha256` 只在一镜成立）、非参考片原则（不得用参考片任何原帧）、留痕原则（`source` + `license` 齐全且校验通过）。理由：若让素材来源参与九轴计分，用一张 Pexels 图就等于自认雷同，规则会直接失效；反过来，用了图库素材也不构成九轴雷同的豁免。
+
+### 授权事实（核对 2026-11-13，只核对许可页正文）
+
+| 站 | 关键结论 | 易漏点 |
+|---|---|---|
+| Pexels License | 免费商用、可改、署名"赞赏非强制" | 禁卖未修改副本、禁暗示背书、禁在其它图库转售；人物可识别的商用需自备 release |
+| Unsplash License | 免费商用、无需许可、不可撤销 | 不覆盖图内商标/可识别人脸/他人作品；**走 API 集成时署名转强制**；Unsplash+ 另有条款 |
+| Pixabay Content License | 免费商用、无需署名 | **Sponsored Images 是 Shutterstock 供稿，不在免费许可内**；2019 年前旧图仍适用 CC0 |
+
+价格、上传上限、可用地区不固化——条款会变，所以 manifest 记 `retrievedAt` 而不是背条款。
+
+### 边界（这次没做）
+
+- **不做爬站抓图**：`fetch_asset.py` 只接受明确 URL 或官方 API（Pexels），不写爬虫。Pexels ToS 禁 bulk / systematic copying，Unsplash API 强制热链接不得转存——这条不是能力限制，是合规边界，见 `asset-sourcing.md` §2.2。
+- **Pexels API 当前不可用**：官方页面提示「新API密钥的签发目前已暂停，无法申请」（2026-11-13 用户截图 + 第三方同日核对一致）。`--pexels-*` 代码保留未删，key 恢复后可直接用，但**从未跑过真实响应**。
+- **Openverse 未接入**：连续两次实测 504（Frankfurt / Singapore 节点），文档页 404，字段无法核实。服务恢复后可作为无 key 检索通道复核，现阶段不写代码。
+- **Pixabay 未接**：需 key，官方条款要求展示来源、禁止永久热链接（须下到自有服务器，与用法一致）、缓存 24h、禁批量下载。状态待核实。
+- **没有提升视频素材的帧精确性**：`<video>` 嵌入仍是 0 ~ −1 帧（GOP 180 未等待时 −52 帧）。本次的解法是绕开它——抽成序列，而不是改渲染器。
+- **抽帧未覆盖的场景**：大素材（>1GB / 4K）的耗时与内存未实测；不抽音频（声音走 `build_voice` / `build_sfx`）；`--fit cover` 的裁切是居中，不做主体感知裁切。
+- 未验证：内联 base64 大图的实际影响。
+
+### 中途修掉的缺陷
+
+`frames_from_video.py` 初版用 `os.path.relpath(outdir, os.getcwd())` 打印工程片段，素材在 C: 临时目录、工程在 D: 时抛 `ValueError: path is on mount 'C:', start on mount 'D:'`——抽帧本身成功，却在最后一步崩掉。改成 `safe_rel()`：跨盘符回退绝对路径，并补 `test_cross_drive_falls_back_to_absolute`。这条和 v2.8.0 早前的 manifest root 推导错误是同一类问题：**跑一遍真数据才暴露**。
+
+### 验证
+
+- `python -m unittest discover -s scripts/tests -p "test_*.py"`：138 用例 OK（19.0s），含真实抽帧端到端。
+- `node scripts/doctor.mjs`：PASS，9 个历史 WARN 不变（老配方缺 `fit`，与本次无关）。
+
 ## v2.7.2 — 2026-11-12
 
 边界实测（静音音轨 / 重素材 / 12 秒长片 / 嵌入视频素材）后修两处，并把新约定写进预览契约。不动渲染契约的必选部分、不动牌组与配方。

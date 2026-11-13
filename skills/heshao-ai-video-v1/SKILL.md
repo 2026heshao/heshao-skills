@@ -1,7 +1,7 @@
 ---
 name: heshao-ai-video-v1
-version: 2.7.0
-description: 原创产品宣传片与 AI 动画故事双路线工作流。用于产品宣传片、参考片改编方法、二维/三维/MG 动画、角色故事、无旁白或纯无声动画、分镜/动态预演、4:3 可交互网页预览与确认后 MP4 交付。产品路线先做产品画像，再选本地牌组/联网试用卡/手写校验的受控配方；故事路线先定故事或表演意图、角色基准、动作与镜头，不强套产品事实表、抽牌、口播占比或 CTA。提供动作设计、一致性、平台能力查证、逐镜验收和最小返工方法，内置 Seedance 2.0 提示词子技能。也用于“不要每次抽卡”“牌组不适合这个产品”“动画怎么保持一致/怎么接镜头”。Use for original product promos, AI animation stories, 2D/3D motion, silent animation, storyboards/animatics, controlled recipes, reference-driven filmmaking, HTML previews and verified delivery. 不承诺新模型或外部视频素材已接入现有逐帧渲染器。
+version: 2.8.0
+description: 原创产品宣传片与 AI 动画故事双路线工作流。用于产品宣传片、参考片改编方法、二维/三维/MG 动画、角色故事、无旁白或纯无声动画、分镜/动态预演、4:3 可交互网页预览与确认后 MP4 交付。产品路线先做产品画像，再选本地牌组/联网试用卡/手写校验的受控配方；故事路线先定故事或表演意图、角色基准、动作与镜头，不强套产品事实表、抽牌、口播占比或 CTA。提供动作设计、一致性、平台能力查证、逐镜验收和最小返工方法，内置 Seedance 2.0 提示词子技能。素材分六类来源（代码绘制/自制/图库/公有领域/AI 生成/付费）并强制授权台账：每条素材记来源、许可、日期与哈希，视频素材须抽帧成图片序列才算帧精确，同图跨镜复用与影视截图当素材会被闸门拦下。也用于“不要每次抽卡”“牌组不适合这个产品”“动画怎么保持一致/怎么接镜头”“素材从哪来、能不能商用”。Use for original product promos, AI animation stories, silent animation, storyboards/animatics, controlled recipes, asset sourcing and license tracking, HTML previews and verified delivery. 不承诺新模型或外部视频素材已接入现有逐帧渲染器。
 ---
 
 # Heshao AI Video v2 — 产品宣传片与动画故事
@@ -103,7 +103,7 @@ node scripts/pick.mjs --list
 
 **故事路线优先级**：产品专用的旁白占比/空白阈值、句数、固定幕长、关键词字幕、CTA、`fit` 与产品配方不适用；按故事事件节奏、真实台词/无声模式执行，详情留工程内，共享经验可用 `recipe=manual`。原创性、授权、确定性、预览确认和真实 QA 不放宽。没有参考片不伪造九轴对比。
 
-每镜再选 `productionMethod=code/ai/hybrid`，不要改写产品的 `fit.verdict=local/trial/handmade`。二维、三维、MG 按动作任务选方法，不默认整图推拉等于角色动画。
+每镜再选 `productionMethod=code/ai/hybrid/stock/footage/recorded`，不要改写产品的 `fit.verdict=local/trial/handmade`。前三个是**制作方式**，后三个是**素材来源**（图库图 / 实拍或录屏片段 / 自制拍摄）；选路判据、素材规格与授权台账见 [素材来源](references/asset-sourcing.md) §3。二维、三维、MG 按动作任务选方法，不默认整图推拉等于角色动画。
 
 纯剪辑/转码和静态海报不套此流程；完全照搬参考片须先说明原创性问题。
 **先确认**：目的、画幅、时长、帧率、语言、参考资产、声音模式；产品路线另查真实版本。已有答案不重复问，默认规格可用但执行前须核对工具能力。
@@ -211,6 +211,8 @@ node scripts/pick.mjs --list
 - 播放器：播放/暂停、进度拖拽、重播、全屏、0.5×/1×/1.5×/2×、字幕开关、静音/音量、章节跳转；
 - 抽屉：分镜/时间码/文案/差异化/规格；
 - 首屏用一张钩子帧做 poster，点播放从 0 开始；
+- **非代码素材先登记再上屏**：每条素材进 `assets/asset-manifest.json`（来源、许可、日期、哈希），过 `scripts/check_assets.py`。视频素材用 `scripts/frames_from_video.py` 抽成 PNG 序列（自动规整 fps、4:3 裁切、查断号、对账帧数）走帧精确路径，单张静图配代码动效；**不直接嵌 MP4**——长 GOP 素材实测会掉到 −52 帧。规则见 [素材来源](references/asset-sourcing.md) §5–§6。
+- 图片一律 `await img.decode()`，序列索引 `Math.min(count-1, Math.floor(t*fps))` 夹取；`window.__ready` 只代表脚本声明就绪，不代表素材可用（实测晚到 1.5s 的素材丢了前 17 帧）。
 - 所有 CSS/JS/音频/SFX 加 `?v=` 版本号，避免改了文件浏览器还在跑旧版。
 
 数据契约、播放器、纯函数写法、音频同步、缓存与 QA：`references/preview-contract.md`。
@@ -237,6 +239,7 @@ node scripts/pick.mjs --list
 python -m unittest discover -s scripts/tests -p "test_*.py"                  # 闸门自身必须先全绿
 node scripts/check_engine_discipline.mjs --engine <项目>/assets/engine.js   # 舞台层复位 + 签名覆盖
 python scripts/pacing_report.py --timeline <项目>/assets/timeline.json      # 1× 节奏闸门
+python scripts/check_assets.py --manifest <项目>/assets/asset-manifest.json --commercial  # 素材台账（纯代码绘制则跳过并记 N/A）
 ```
 
 测试不全绿不许进确认门，也不许出片 —— 否则这些闸门等于没人跑的装饰。
@@ -279,6 +282,7 @@ python scripts/pacing_report.py --timeline <项目>/assets/timeline.json      # 
 - 接触表；文件大小与 SHA-256；
 - 交付 README：成片链接、规格、QA 结果、重出命令、已知限制。
 - 产物落盘后把路径回填到 recipe 的 `deliverables`：**必须声明 `projectRoot`**（技能包外的影片工程根目录），其余路径一律相对它。技能包不存素材，也不要把交付物写进技能包。
+- 用了外部素材的工程，`assets/asset-manifest.json` 随工程一起保留：它是授权台账，不是可选附件。交付说明里写清素材来源与许可，别让对方事后猜。
 
 `scripts/qa_mp4.py` 是一份可直接改路径使用的成片 QA 脚本。它和 render.mjs 用同一套 ffmpeg 探测（`PROMO_FFMPEG` → PATH → 剪映自带），不再要求 ffmpeg 必须在 PATH 上。加 `--ref` 做逐帧回捞时必须带 `--project-root <影片工程目录>`，否则重截会在错误的目录里找页面。
 
@@ -405,6 +409,7 @@ window.PROMO = {
 - [ ] `scripts/tests` 全绿（用例数与耗时写进交付说明）
 - [ ] 舞台层共享件已在 `renderAt` 开头复位，且已进 `signature()` 清单
 - [ ] 节奏闸门：旁白占时比 ≥0.80、每幕最长空白 ≤0.35s（落版除 CTA hold 外 ≤1.0s）
+- [ ] 用了非代码素材时 `check_assets.py` 通过（来源可溯 / 许可在白名单 / 商用一致 / 哈希可核 / 无跨镜重复）；纯代码绘制记 N/A 并说明素材全部由代码生成
 
 **成片**
 
@@ -421,7 +426,7 @@ window.PROMO = {
 
 ---
 
-## 6. 十一个常见坑
+## 6. 十二个常见坑
 
 1. **把参考片的“方法”当成“风格”**：换色、换字、换贴纸不算原创；产品九轴至少 7 项明显不同（任意 3 项同/近就重做）。故事按 [原创性计数](references/ai-animation-workflow.md#2-所有路线共用的边界) 排除共同缺失项，不凑七项、不伪造比较，仍禁止复制关键表达。
 2. **先画画面再配字**：会导致功能被硬塞、事实不准。先事实表，再文案，再分镜。
@@ -434,6 +439,7 @@ window.PROMO = {
 9. **用整片降噪掩盖单句气口**：先按句量 p10/p5，找离群句；单句气口先换 TTS take（标点变体），再考虑低通/门限。`afftdn` 对这类气口通常无效，整片门限会切字尾。
 10. **把持续房间底噪当“氛围”**：28s 的棕噪 + 45/90Hz 在句间 -42 dBFS，用户会听成“配音有杂音”；旁白本身量下来是数字零。先删持续底噪、再压机械音效，不要先给旁白加降噪。案例：`references/case-dsh-armory-vault.md` §6。
 11. **先抽卡再看产品**：`pick.mjs` 不看产品（`bestFor` 不参与抽签），只能给一组方法自洽但可能贴错产品的配方。产品先按 Phase 0.5 比核心动作与 `motion`/`motifs`，确实缺表达才出试用卡。三问全答不上时回到 §1：产品片先补事实，纯动画故事/表演走 S0–S6，不硬抽也不一概拒绝。
+12. **素材当氛围板，忘了留痕**：图库图、录屏、AI 场景板一进来就要登记 manifest——许可只覆盖图片本身，不覆盖图里的**人脸、商标和他人作品**；影视截图抽帧不因"注明出处"就获得授权；同一张底图跨镜复用会被判视觉贫乏。抓不到来源的素材宁可不做这个镜头。见 [素材来源](references/asset-sourcing.md) §2 / §9。
 
 ---
 
@@ -446,6 +452,7 @@ window.PROMO = {
 - [references/ai-animation-workflow.md](references/ai-animation-workflow.md) — 影片类型/制作方法、故事 S0–S6、产品动画接入、声音模式、现有工具不支持的边界。
 - [references/animation-motion-and-qc.md](references/animation-motion-and-qc.md) — 动作卡、动画原理、二维/三维差异、接触/连续性、镜头验收与最小返工。
 - [references/ai-animation-sources.md](references/ai-animation-sources.md) — 15 个来源页面、平台差异、证据层级；使用具体模型前核实，不充当已实测声明。
+- [references/asset-sourcing.md](references/asset-sourcing.md) — 素材来源六类与授权实况（Pexels / Unsplash / Pixabay 逐条红线，核对 2026-11-13）、选路决策树、素材规格（≥1080px、4:3 裁切余量）、三种进工程形态与确定性、`asset-manifest.json` 契约与许可白名单、与原创性九轴的分层口径、授权红线。
 - `references/deconstruction.md` — 参考片拆解表、可借/禁借清单、filled example。
 - `references/product-fit-and-routing.md` — Phase 0.5：产品画像卡、适配三问怎么判、A/B/C 三条抽卡路线、试用卡 schema 与转正五步、联网证据要求。
 - `references/originality-gates.md` — 9 轴雷同自检、改写策略、失败案例。
@@ -468,7 +475,10 @@ window.PROMO = {
 - `scripts/tts_chain.py` — 润音链通用件（解码/裁静/EQ/压缩/淡入淡出/真峰值限幅/样本级拼装），被 `build_voice.py` 调用。
 - `scripts/check_engine_discipline.mjs` — 舞台层纪律机器检查：挂在 `#stage` 且被幕渲染器写过的元素必须每帧复位、必须进 `signature()`；另带 good/bad 两个 fixture 证明它能变红。
 - `scripts/pacing_report.py` — 节奏闸门：开场 lead / 幕首 lead / 句间空白 / 跨幕空场 / 片尾空场 / 旁白占时比 六项分别判 PASS/FAIL，阈值可用参数覆盖。
-- `scripts/tests/` — 7 个文件、55 用例（`python -m unittest discover -s scripts/tests -p "test_*.py"`）：参数白名单与帧指纹、meta 指纹、账本判定、timeline resolver、sfx 可复现与高频点名、qa_mp4 自检、preflight 体检、两个闸门自身。
+- `scripts/check_assets.py` — 素材台账闸门：来源可溯（非自制必须 `source.url`、必须有 `retrievedAt`）、许可在白名单内且与商用声明一致、署名文本齐备、`sha256` 与实际内容一致、同一素材跨镜复用拦截、序列 `frameCount` 与磁盘帧数一致、`derivedFrom` 可解析；`--stamp` 回填哈希，`--commercial` 按商用片判定，`--allow-license` / `--allow-reuse` 为显式放行口。
+- `scripts/frames_from_video.py` — 视频 → PNG 序列，绕开「嵌 MP4 不帧精确」：按工程 fps 规整、`cover`/`contain`/`none` 画幅处理、序号连续性校验（断号退出 1）、实际帧数与期望帧数对账、`--emit-manifest` 吐台账片段。已有帧时拒绝覆盖，需 `--overwrite` 防混批。
+- `scripts/fetch_asset.py` — 素材落地闸门：按**明确 URL** 下载，或按 `--file` 把已下载的本地文件复制进工程（零网络依赖，Pexels 停发新 key 时的主路径），自动算哈希、写台账、立刻过闸门。四道拦截：非 http/https、>200MB、magic bytes 判容器（防盗链页常伪装成 `image/jpeg`）、同内容重复登记。**不做爬站抓图**——Pexels ToS 禁系统性采集，Unsplash API 禁转存，各通道现状见 [素材来源](references/asset-sourcing.md) §2.2。
+- `scripts/tests/` — 11 个文件、138 用例（`python -m unittest discover -s scripts/tests -p "test_*.py"`）：参数白名单与帧指纹、meta 指纹、账本判定、timeline resolver、sfx 可复现与高频点名、qa_mp4 自检、preflight 体检、素材台账闸门、抽帧序号与对账、素材下载与去重、两个闸门自身。
 - `scripts/doctor.mjs` — 注册表体检：active world 是否都有兼容条目、悬空引用、永不可达的卡、权重缺项、文档世界数；**轴数口径**（SKILL 声明 = gates 表行 = 配方 `fixed.qa` = pick.mjs 标签）；**deliverables 路径根**；**试用卡完整性**（compat / 撞 id / `source.urls` + `evidence`）；**选路留痕**（`fit` / `research` 一致性与试用引用可解析）。不一致退出码 1。加卡/禁卡、改配方字段、动 proposals 后必跑；`--root <dir>` 可对别的目录树跑（坏例自测用）。
 - `decks/*.json` — world / hook / transition / caption / sound / rhythm 牌组（含 banned 对照卡）。
 - `decks/proposals/_TEMPLATE.world.json` — 试用卡模板（L1.5）：联网找来的新表达先落在这里，必带 `compat` 与 `source` 证据，不给 `--deck` 就不可见不可达。
